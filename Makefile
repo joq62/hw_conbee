@@ -14,6 +14,8 @@ all:
 	cp _build/default/lib/*/ebin/* ebin;
 	rm -rf _build;
 #	rm -rf tests_ebin;
+	mkdir tests_ebin;
+	erlc -I include -o tests_ebin tests/*.erl;
 	git add -f *;
 	git commit -m $(m);
 	git push;
