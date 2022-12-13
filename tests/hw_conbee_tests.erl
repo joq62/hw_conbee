@@ -75,7 +75,8 @@ setup()->
 
     ConbeeAddr="172.17.0.2",
     ConbeePort=80,
-    Crypto="D83FA13F74",
+    Crypto="4B3F1542C5",
+
     {ok,_}=hw_conbee_server:start(ConbeeAddr,ConbeePort,Crypto),
     {ok,_}=common:start(),
     pong=hw_conbee:ping(),
