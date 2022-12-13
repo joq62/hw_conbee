@@ -1,0 +1,78 @@
+%% Author: uabjle
+%% Created: 10 dec 2012
+%% Description: TODO: Add description to application_org
+-module(hw_conbee).
+
+%% --------------------------------------------------------------------
+%% Include files
+%% --------------------------------------------------------------------
+-define(SERVER,list_to_atom(atom_to_list(?MODULE)++"_server")).
+%% --------------------------------------------------------------------
+%% Internal exports
+%% --------------------------------------------------------------------
+
+
+-export([
+	 set_on/2,   % switch/lamp       
+	 set_off/2,   
+	 set_brightness/1, 
+	 is_on/1, 
+	 is_off/1,
+	 is_open/1,
+	 is_closed/1
+	 value/1,
+	 is_reachable/1
+	
+
+	]).
+
+
+-export([
+	
+	 
+	 get_state/0,
+	 ping/0
+
+	]).
+
+
+%% --------------------------------------------------------------------
+%% Macros
+%% --------------------------------------------------------------------
+
+%% --------------------------------------------------------------------
+%% Records
+%% --------------------------------------------------------------------
+
+%% --------------------------------------------------------------------
+%% API Functions
+%% --------------------------------------------------------------------
+set_on(DeviceName,DeviceState)>
+    gen_server:call(?SERVER, {set_on,DeviceName,DeviceState}).
+set_off(DeviceName,DeviceState)>
+    gen_server:call(?SERVER, {set_off,DeviceName,DeviceState}).
+is_on(DeviceName)>
+    gen_server:call(?SERVER, {is_on,DeviceName}).
+is_off(DeviceName,State)>
+    gen_server:call(?SERVER, {set_off,DeviceName,State}).
+
+
+
+
+
+
+
+ping() ->
+    gen_server:call(ops_node_server, {ping}).
+
+get_state() ->
+    gen_server:call(ops_node_server, {get_state}).
+
+%% ====================================================================!
+%% External functions
+%% ====================================================================!
+
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
