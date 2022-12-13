@@ -58,7 +58,6 @@ eunit:
 	rm -rf *.dir;
 #	tests 
 	mkdir tests_ebin;
-	erlc -I include -o tests_ebin ../../infra/common/src/*.erl;
 	erlc -I include -o tests_ebin tests/*.erl;
 #	application
 	mkdir ebin;
