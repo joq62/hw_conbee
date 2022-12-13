@@ -43,14 +43,14 @@
 %% API Functions
 %% --------------------------------------------------------------------
 set(DeviceName,DeviceType,DeviceState)->
-    gen_server:call(?SERVER, {set,DeviceName,DeviceType,DeviceState},infinity).
+    gen_server:call(?SERVER, {set,DeviceName,DeviceType,DeviceState}).
 
 
 get(DeviceId,DeviceType)->
-    gen_server:call(?SERVER, {get,DeviceId,DeviceType},inifinty).
+    gen_server:call(?SERVER, {get,DeviceId,DeviceType}).
 
 get_all_device_info(DeviceType)->
-    gen_server:call(?SERVER,{get_all_device_info,DeviceType},inifinty).
+    gen_server:call(?SERVER, {get_all_device_info,DeviceType}).
 
 
 
