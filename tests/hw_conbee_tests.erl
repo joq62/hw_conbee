@@ -49,36 +49,6 @@ hw_conbee_app_test()->
     io:format("AllApps ~p~n",[{AllApps,?MODULE,?FUNCTION_NAME}]),
     
     ok.
-%% --------------------------------------------------------------------
-%% Function: available_hosts()
-%% Description: Based on hosts.config file checks which hosts are avaible
-%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
-%% --------------------------------------------------------------------
-deploy_appls_test()->
-    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-    
-    ok=oam:deploy_appls(),
-    _AllApps=oam:all_apps(),
-  %  io:format("AllApps ~p~n",[{AllApps,?MODULE,?FUNCTION_NAME}]),
-    {ok,HereIsIt}=oam:where_is_app(math),
-  %  io:format("HereIsIt ~p~n",[{HereIsIt,?MODULE,?FUNCTION_NAME}]),
-    [PodNode|_]=HereIsIt,
-   
-    {ok,PresentApps}=oam:present_apps(),
-    io:format("PresentApps ~p~n",[{PresentApps,?MODULE,?FUNCTION_NAME}]),
-    {ok,MissingApps}=oam:missing_apps(),
-    io:format("MissingApps ~p~n",[{MissingApps,?MODULE,?FUNCTION_NAME}]),
-    
-    
-    
-
-    ok.
-
-%% --------------------------------------------------------------------
-%% Function: available_hosts()
-%% Description: Based on hosts.config file checks which hosts are avaible
-%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
-%% --------------------------------------------------------------------
 %%-----------------------------------------------------------------
 %% Function: available_hosts()
 %% Description: Based on hosts.config file checks which hosts are avaible
@@ -86,8 +56,7 @@ deploy_appls_test()->
 %% --------------------------------------------------------------------
 start_cluster_test()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-    
-    
+       
     ok=oam:new_db_info(),
     oam:new_connect_nodes(),
     {ok,[{pong,'prototype_c201_connect@c201'}]}=oam:ping_connect_nodes(),

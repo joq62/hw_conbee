@@ -38,7 +38,7 @@ device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
 						       WantedDeviceName=:=Name],
     AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
     LightsInfo=[{Name,NumId,ModelId,"lights",State}||{Name,NumId,ModelId,State}<-AllInfoLights,
-                                             WantedDeviceName=:=Name],
+						     WantedDeviceName=:=Name],
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
                    {error,[eexists,WantedDeviceName]};

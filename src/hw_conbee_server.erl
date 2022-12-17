@@ -128,7 +128,7 @@ handle_call({device_info,WantedDeviceName},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=rpc:call(node(),lib_hw_conbee,all_info,[WantedDeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,device_info,[WantedDeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
 handle_call({get_state},_From, State) ->
