@@ -102,46 +102,19 @@ handle_call({set,DeviceId,DeviceType,DeviceState},_From, State) ->
     rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[" set request",
 								  device_id,DeviceId,
 								  type,DeviceType,
-								  device_state,DeviceState]]),
-    
+								  device_state,DeviceState]]), 
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-  
-    Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
-    Body=case DeviceState of
-	     "on"->
-		 jsx:encode(#{<<"on">> => true});		   
-	     "off"->
-		 jsx:encode(#{<<"on">> => false})
-	 end,
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    StreamRef = gun:put(ConnPid, Cmd, 
-			[{<<"content-type">>, "application/json"}],Body),
-    Reply=get_reply(ConnPid,StreamRef),
-    ok=gun:close(ConnPid),
+    Reply=rpc:call(node(),lib_hw_conbee,set,[DeviceId,DeviceType,DeviceState,
+					     ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
 handle_call({get,DeviceId,DeviceType},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-  
-    Reply=case [{Name,
-		 NumId,
-		 ModelId,
-		 DeviceState}||{Name,
-				NumId,
-				ModelId,
-				DeviceState}<-all_info(ConbeeAddr,
-						       ConbeePort,
-						       Crypto,
-						       DeviceType),DeviceId=:=Name] of
-	      []->
-		  {error,[eexists,DeviceType,DeviceId]};
-	      List->
-		   {ok,List}
-	   end,
+    Reply=rpc:call(node(),lib_hw_conbee,get,[DeviceId,DeviceType,ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
 
@@ -149,7 +122,7 @@ handle_call({get_all_device_info,DeviceType},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=all_info(ConbeeAddr,ConbeePort,Crypto,DeviceType),
+    Reply=rpc:call(node(),lib_hw_conbee,all_info,[ConbeeAddr,ConbeePort,Crypto,DeviceType],2*5000),
     {reply, Reply, State};
 
 handle_call({get_state},_From, State) ->
@@ -211,53 +184,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% --------------------------------------------------------------------
 %%% Internal functions
 %% --------------------------------------------------------------------
-get_reply(ConnPid,StreamRef)->
- %   io:format("~p~n", [{?MODULE,?LINE}]),
- %   StreamRef = gun:get(ConnPid, "/"),
-    case gun:await(ConnPid, StreamRef) of
-	{response, fin, Status, Headers} ->
-%	    io:format(" no_data ~p~n", [{?MODULE,?LINE}]),
-	    Body=[no_data];
-	{response, nofin, Status, Headers} ->
-%	    io:format(" ~p~n", [{?MODULE,?LINE}]),
-	    {ok, Body} = gun:await_body(ConnPid, StreamRef),
-	    Body
-    end,
-    {Status, Headers,Body}.
+
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-all_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
-    extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType).
-  
-extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    CmdLights="/api/"++Crypto++"/"++DeviceType,
-    Ref=gun:get(ConnPid,CmdLights),
-    Result= get_info(gun:await_body(ConnPid, Ref)),
-    ok=gun:close(ConnPid),
-    Result.
-
-get_info({ok,Body})->
-    get_info(Body);
-get_info(Body)->
-    Map=jsx:decode(Body,[]),
-    format_info(Map).
-
-format_info(Map)->
-    L=maps:to_list(Map),
- %   io:format("L=~p~n",[{?MODULE,?LINE,L}]),
-    format_info(L,[]).
-
-format_info([],Formatted)->
-    Formatted;
-format_info([{IdBin,Map}|T],Acc)->
-    NumId=binary_to_list(IdBin),
-    Name=binary_to_list(maps:get(<<"name">> ,Map)),
-    ModelId=binary_to_list(maps:get(<<"modelid">>,Map)),
-    State=maps:get(<<"state">>,Map),
-    NewAcc=[{Name,NumId,ModelId,State}|Acc],
-    format_info(T,NewAcc).
-

@@ -4,28 +4,76 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(lib_conbee).    
+-module(lib_hw_conbee).    
      
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
 
 %% --------------------------------------------------------------------
--define(Application,conbee_rel).
 
 
 %% External exports
 -export([
-	 device/2,
-	 all_raw/0,
-	 all_info/1,
-	 get_reply/2
+	 all_info/4,
+	 set/6,
+	 get/5
+	 
 	]). 
 
 
 %% ====================================================================
 %% External functions
 %% ====================================================================
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+set(DeviceId,DeviceType,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
+     Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
+    Body=case DeviceState of
+	     "on"->
+		 jsx:encode(#{<<"on">> => true});		   
+	     "off"->
+		 jsx:encode(#{<<"on">> => false})
+	 end,
+    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
+    StreamRef = gun:put(ConnPid, Cmd, 
+			[{<<"content-type">>, "application/json"}],Body),
+    Result=get_reply(ConnPid,StreamRef),
+    ok=gun:close(ConnPid),
+    Result.
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+get(DeviceId,DeviceType,ConbeeAddr,ConbeePort,Crypto)->
+    DeviceInfoList=[{Name,NumId,ModelId,DeviceState}||{Name,NumId,ModelId,DeviceState}<-all_info(ConbeeAddr,
+												 ConbeePort,
+												 Crypto,
+												 DeviceType),DeviceId=:=Name],
+    Result=case DeviceInfoList  of
+	       []->
+		   {error,[eexists,DeviceType,DeviceId]};
+	       List->
+		   {ok,List}
+	   end,
+    Result.
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
 get_reply(ConnPid,StreamRef)->
  %   io:format("~p~n", [{?MODULE,?LINE}]),
  %   StreamRef = gun:get(ConnPid, "/"),
@@ -39,63 +87,17 @@ get_reply(ConnPid,StreamRef)->
 	    Body
     end,
     {Status, Headers,Body}.
-   
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-all_raw()->
-    {ok,ConbeeAddr}=application:get_env(ip),
-    {ok,ConbeePort}=application:get_env(port),
-    {ok,CmdSensors}=application:get_env(cmd_sensors),
-
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    Ref=gun:get(ConnPid,CmdSensors),
-    Result= all_raw(gun:await_body(ConnPid, Ref)),
-    ok=gun:close(ConnPid),
-    Result.
-
-all_raw({ok,Body})->
-    all_raw(Body);
-all_raw(Body)->
-    Map=jsx:decode(Body,[]),
-    maps:to_list(Map).
-
-%% --------------------------------------------------------------------
-%% Function:start/0 
-%% Description: Initiate the eunit tests, set upp needed processes etc
-%% Returns: non
-%% --------------------------------------------------------------------
-device(Type,WantedName)->
-    Result=case [{Name,NumId,ModelId,State}||{Name,NumId,ModelId,State}<-all_info(Type),
-					     WantedName=:=Name] of
-	       []->
-		   {error,[eexists,Type,WantedName]};
-	       List->
-		   {ok,List}
-	   end,
-    Result.
-	
-
-
-%% --------------------------------------------------------------------
-%% Function:start/0 
-%% Description: Initiate the eunit tests, set upp needed processes etc
-%% Returns: non
-%% --------------------------------------------------------------------
-all_info(Type)->
-    {ok,ConbeeAddr}=application:get_env(?Application,addr),
-    {ok,ConbeePort}=application:get_env(?Application,port),
-    {ok,Crypto}=application:get_env(?Application,key),
-    all_info(ConbeeAddr,ConbeePort,Crypto,Type).
-
-all_info(ConbeeAddr,ConbeePort,Crypto,Type)->
-    extract_info(ConbeeAddr,ConbeePort,Crypto,Type).
+all_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
+    extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType).
   
-extract_info(ConbeeAddr,ConbeePort,Crypto,Type)->
+extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
     {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    CmdLights="/api/"++Crypto++"/"++Type,
+    CmdLights="/api/"++Crypto++"/"++DeviceType,
     Ref=gun:get(ConnPid,CmdLights),
     Result= get_info(gun:await_body(ConnPid, Ref)),
     ok=gun:close(ConnPid),

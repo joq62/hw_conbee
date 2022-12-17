@@ -1,7 +1,7 @@
 {"1.2.0",
 [{<<"common">>,
   {git,"https://github.com/joq62/common.git",
-       {ref,"3ef9e519a620c17564da6a308c7d754b7fc50453"}},
+       {ref,"71bd1cf941b254283eb52e7c5ee6b033f4b46a03"}},
   0},
  {<<"cowboy">>,
   {git,"https://github.com/ninenines/cowboy",
