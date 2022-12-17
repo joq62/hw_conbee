@@ -11,13 +11,14 @@
 %% --------------------------------------------------------------------
 
 %% --------------------------------------------------------------------
-
+-define(DeviceTypes,["sensors","lights"]
 
 %% External exports
 -export([
 	 all_info/4,
-	 set/6,
-	 get/5
+	 device_info/4,
+	 set/5,
+	 get/4
 	 
 	]). 
 
@@ -31,43 +32,55 @@
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
+device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    AllInfoSensors=all_info("sensors",ConbeeAddr,ConbeePort,Crypto),
+    SensorsInfo=[{Name,NumId,ModelId,"sensors",State}||{Name,NumId,ModelId,State}<-AllInfoSensors,
+						       WantedDeviceName=:=Name],
+    AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
+    LightsInfo=[{Name,NumId,ModelId,"lights",State}||{Name,NumId,ModelId,State}<-AllInfoLights,
+                                             WantedDeviceName=:=Name],
+    Result=case {SensorsInfo,LightsInfo} of
+               {[],[]}->
+                   {error,[eexists,WantedDeviceName]};
+	       {List,[]}->
+                   {ok,List};
+	       {[],List}->
+		   {ok,List}
+           end,
+    Result.
 
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-set(DeviceId,DeviceType,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
-     Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
-    Body=case DeviceState of
-	     "on"->
-		 jsx:encode(#{<<"on">> => true});		   
-	     "off"->
-		 jsx:encode(#{<<"on">> => false})
-	 end,
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    StreamRef = gun:put(ConnPid, Cmd, 
-			[{<<"content-type">>, "application/json"}],Body),
-    Result=get_reply(ConnPid,StreamRef),
-    ok=gun:close(ConnPid),
+set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
+    Result=case device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto) of
+	       {error,Reason}->
+		   {error,Reason}; 
+	       {ok,[{_Name,DeviceId,_ModelId,DeviceType,_StateMap}]}->
+		   Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
+		   Body=case DeviceState of
+			    "on"->
+				jsx:encode(#{<<"on">> => true});		   
+			    "off"->
+				jsx:encode(#{<<"on">> => false})
+			end,
+		   {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
+		   StreamRef = gun:put(ConnPid, Cmd, 
+				       [{<<"content-type">>, "application/json"}],Body),
+		   ResultHttp=get_reply(ConnPid,StreamRef),
+		   ok=gun:close(ConnPid),
+		   {ok,ResultHttp}
+	   end,
     Result.
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-get(DeviceId,DeviceType,ConbeeAddr,ConbeePort,Crypto)->
-    DeviceInfoList=[{Name,NumId,ModelId,DeviceState}||{Name,NumId,ModelId,DeviceState}<-all_info(ConbeeAddr,
-												 ConbeePort,
-												 Crypto,
-												 DeviceType),DeviceId=:=Name],
-    Result=case DeviceInfoList  of
-	       []->
-		   {error,[eexists,DeviceType,DeviceId]};
-	       List->
-		   {ok,List}
-	   end,
-    Result.
+get(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto).
 
 %% --------------------------------------------------------------------
 %% Function:start/0 
@@ -92,10 +105,10 @@ get_reply(ConnPid,StreamRef)->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-all_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
-    extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType).
+all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
+    extract_info(DeviceType,ConbeeAddr,ConbeePort,Crypto).
   
-extract_info(ConbeeAddr,ConbeePort,Crypto,DeviceType)->
+extract_info(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
     {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
     CmdLights="/api/"++Crypto++"/"++DeviceType,
     Ref=gun:get(ConnPid,CmdLights),

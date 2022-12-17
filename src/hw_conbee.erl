@@ -14,8 +14,9 @@
 
 -export([
 	 %lights
-	 set/3,
-	 get/2,
+	 set/2,
+	 get/1,
+	 device_info/1,
 	 get_all_device_info/1
 	 % 
 
@@ -42,12 +43,16 @@
 %% --------------------------------------------------------------------
 %% API Functions
 %% --------------------------------------------------------------------
-set(DeviceName,DeviceType,DeviceState)->
-    gen_server:call(?SERVER, {set,DeviceName,DeviceType,DeviceState}).
+device_info(WantedDeviceName)->
+    gen_server:call(?SERVER, {device_info,WantedDeviceName}).
 
 
-get(DeviceId,DeviceType)->
-    gen_server:call(?SERVER, {get,DeviceId,DeviceType}).
+set(DeviceName,DeviceState)->
+    gen_server:call(?SERVER, {set,DeviceName,DeviceState}).
+
+
+get(DeviceName)->
+    gen_server:call(?SERVER, {get,DeviceName}).
 
 get_all_device_info(DeviceType)->
     gen_server:call(?SERVER, {get_all_device_info,DeviceType}).
