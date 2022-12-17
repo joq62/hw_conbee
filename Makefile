@@ -52,8 +52,6 @@ eunit:
 	rm -rf erl_cra*;
 	rm -rf rebar.lock;
 	rm -rf _build;
-#	rm -rf  application_specs cluster_specs host_specs;
-#	rm -rf  application_deployments cluster_deployments;	
 	rm -rf tests_ebin
 	rm -rf ebin;
 	rm -rf Mnesia.*;

@@ -25,7 +25,7 @@
 
 
 -export([
-	 start/3,
+	 start/0,
 	 stop/0
 	]).
 
@@ -50,9 +50,7 @@
 
 	    
 %% call
-start(ConbeeAddr,ConbeePort,Crypto)-> gen_server:start_link({local, ?MODULE}, ?MODULE, [ConbeeAddr,
-							    ConbeePort,
-							    Crypto], []).
+start()-> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 stop()-> gen_server:call(?MODULE, {stop},infinity).
 
 
@@ -71,11 +69,19 @@ stop()-> gen_server:call(?MODULE, {stop},infinity).
 %%          ignore               |
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
-init([ConbeeAddr,ConbeePort,Crypto]) ->
+init([]) ->
+       
+    {ok,ConbeeAddr}=application:get_env(hw_conbee_app,conbee_addr),
+    {ok,ConbeePort}=application:get_env(hw_conbee_app,conbee_port),
+    {ok,Crypto}=application:get_env(hw_conbee_app,conbee_key),
+    
     application:ensure_all_started(gun),
     os:cmd("docker restart "++?ConbeeContainer),
     timer:sleep(5*1000),
-    
+    rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,["Server started",
+								  ip_addr,ConbeeAddr,
+								  ip_port,ConbeePort,
+								  crypto,Crypto]]),
     {ok, #state{ip_addr=ConbeeAddr,
 		ip_port=ConbeePort,
 		crypto=Crypto}}.   
@@ -92,6 +98,12 @@ init([ConbeeAddr,ConbeePort,Crypto]) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_call({set,DeviceId,DeviceType,DeviceState},_From, State) ->
+
+    rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[" set request",
+								  device_id,DeviceId,
+								  type,DeviceType,
+								  device_state,DeviceState]]),
+    
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,

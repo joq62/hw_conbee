@@ -114,7 +114,8 @@ lights_test()->
 
 setup()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-
+    
+    
     pong=net_adm:ping(?hw_conbee_node),   
 
     ok.
