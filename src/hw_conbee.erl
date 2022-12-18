@@ -55,6 +55,9 @@ get(DeviceName)->
     gen_server:call(?SERVER, {get,DeviceName}).
 
 get_all_device_info(DeviceType)->
+    rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[node(),
+								  DeviceType
+								 ]]),
     gen_server:call(?SERVER, {get_all_device_info,DeviceType}).
 
 

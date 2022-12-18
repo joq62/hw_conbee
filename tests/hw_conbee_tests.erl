@@ -47,6 +47,11 @@ hw_conbee_app_test()->
     oam:new_appl(ApplSpec,HostSpec,60*1000),
     AllApps=oam:all_apps(),
     io:format("AllApps ~p~n",[{AllApps,?MODULE,?FUNCTION_NAME}]),
+    pong=rd:rpc_call(hw_conbee,hw_conbee,ping,[],2000),
+
+    {ok,[N]}=rd:fetch_resources(hw_conbee),
+    glurk=rpc:call(N,hw_conbee,get_all_device_info,["sensors"],2000),
+    glurk=rpc:call(N,lib_hw_conbee,get_all_device_info,["sensors","172.17.0.2",80,"4B3F1542C5"],2000),
     
     ok.
 %%-----------------------------------------------------------------
