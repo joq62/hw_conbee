@@ -50,9 +50,8 @@ hw_conbee_app_test()->
     pong=rd:rpc_call(hw_conbee,hw_conbee,ping,[],2000),
 
     {ok,[N]}=rd:fetch_resources(hw_conbee),
-    glurk=rpc:call(N,hw_conbee,get_all_device_info,["sensors"],2000),
-    glurk=rpc:call(N,lib_hw_conbee,get_all_device_info,["sensors","172.17.0.2",80,"4B3F1542C5"],2000),
-    
+    AllDevInfo=rd:rpc_call(hw_conbee,hw_conbee,get_all_device_info,["sensors"],2000),
+    io:format("AllDevInfo ~p~n",[{AllDevInfo,?MODULE,?FUNCTION_NAME}]),
     ok.
 %%-----------------------------------------------------------------
 %% Function: available_hosts()
