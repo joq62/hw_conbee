@@ -124,8 +124,7 @@ handle_call({get_all_device_info,DeviceType},_From, State) ->
     rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[node(),
 								  DeviceType
 								 ]]),
-    Reply=lib_hw_conbee:all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
- %   Reply=rpc:call(node(),lib_hw_conbee,all_info,[DeviceType,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,all_info,[DeviceType,ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
 handle_call({device_info,WantedDeviceName},_From, State) ->

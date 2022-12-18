@@ -11,7 +11,7 @@
 %% --------------------------------------------------------------------
 
 %% --------------------------------------------------------------------
--define(DeviceTypes,["sensors","lights"]
+-define(DeviceTypes,["sensors","lights"]).
 
 %% External exports
 -export([
