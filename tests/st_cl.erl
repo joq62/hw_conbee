@@ -32,7 +32,8 @@ start()->
      
   
     io:format("Stop OK !!! ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-
+    init:stop(),
+    timer:sleep(2000),
     ok.
 
 %% --------------------------------------------------------------------
@@ -84,6 +85,9 @@ start_cluster_test()->
     
     ]=lists:sort(PresentWorkers),
     []=MissingWorkers,
+
+    Nodes=[{Node,rpc:call(Node,erlang,nodes,[],2000)}||Node<-nodes()],
+    io:format(" Nodes ~p~n",[{Nodes,?MODULE,?FUNCTION_NAME}]),
     
   
     ok.
