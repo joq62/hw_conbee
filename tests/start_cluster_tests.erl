@@ -9,7 +9,7 @@
 %%% Pod consits beams from all services, app and app and sup erl.
 %%% The setup of envs is
 %%% -------------------------------------------------------------------
--module(hw_conbee_tests).      
+-module(start_cluster_tests).      
  
 -export([start/0]).
 %% --------------------------------------------------------------------
@@ -26,9 +26,9 @@ start()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
 
     ok=setup(),
-    ok=test_1(),
-    
-				
+    ok=start_cluster_test(),
+    ok=hw_conbee_app_test(),
+    % ok=deploy_appls_test(),
      
   
     io:format("Stop OK !!! ~p~n",[{?MODULE,?FUNCTION_NAME}]),
@@ -40,13 +40,54 @@ start()->
 %% Description: Based on hosts.config file checks which hosts are avaible
 %% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
 %% --------------------------------------------------------------------
-test_1()->
+hw_conbee_app_test()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    ApplSpec="hw_conbee",
+    HostSpec="c201",
+    oam:new_appl(ApplSpec,HostSpec,60*1000),
+    AllApps=oam:all_apps(),
+    io:format("AllApps ~p~n",[{AllApps,?MODULE,?FUNCTION_NAME}]),
+    pong=rd:rpc_call(hw_conbee,hw_conbee,ping,[],2000),
+
     AllSensors=rd:rpc_call(hw_conbee,hw_conbee,get_all_device_info,["sensors"],2000),
     io:format("AllSensors ~p~n",[{AllSensors,?MODULE,?FUNCTION_NAME}]),
     AllLights=rd:rpc_call(hw_conbee,hw_conbee,get_all_device_info,["lights"],2000),
     io:format("AllLights ~p~n",[{AllLights,?MODULE,?FUNCTION_NAME}]),
     ok.
+%%-----------------------------------------------------------------
+%% Function: available_hosts()
+%% Description: Based on hosts.config file checks which hosts are avaible
+%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%% --------------------------------------------------------------------
+start_cluster_test()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+       
+    ok=oam:new_db_info(),
+    oam:new_connect_nodes(),
+    {ok,[{pong,'prototype_c201_connect@c201'}]}=oam:ping_connect_nodes(),
+    
+    %[
+    % {pong,'"prototype_c201_connect@c201'}
+    %]=lists:sort(PingNodes),
+    
+    {PresentControllers,MissingControllers}=oam:new_controllers(),
+ %   io:format("PresentControllers,MissingControllers ~p~n",[{PresentControllers,MissingControllers,?MODULE,?FUNCTION_NAME}]),
+
+    ['1_prototype_c201_controller@c201']= lists:sort(PresentControllers),
+    []=MissingControllers,
+   
+    {PresentWorkers,MissingWorkers}=oam:new_workers(),
+  %  io:format("PresentWorkers,MissingWorkers ~p~n",[{PresentWorkers,MissingWorkers,?MODULE,?FUNCTION_NAME}]),
+    
+    [
+     '1_prototype_c201_worker@c201','2_prototype_c201_worker@c201'
+    
+    ]=lists:sort(PresentWorkers),
+    []=MissingWorkers,
+    
+  
+    ok.
+
 
 %% --------------------------------------------------------------------
 %% Function: available_hosts()
@@ -72,30 +113,13 @@ setup()->
     ok=db_cluster_instance:create_table(),
     
     {ok,ClusterDir}=db_cluster_spec:read(dir,?ClusterSpec),
-    case filelib:is_dir(ClusterDir) of
-	true->
-	    ok;
-	false->
-	    os:cmd("rm -rf "++ClusterDir),
-	    ok=file:make_dir(ClusterDir)
-    end,
+    os:cmd("rm -rf "++ClusterDir),
+    ok=file:make_dir(ClusterDir),
     {ok,_}=nodelog_server:start(),
     {ok,_}=resource_discovery_server:start(),
     {ok,_}=connect_server:start(),
     {ok,_}=appl_server:start(),
     {ok,_}=pod_server:start(),
     ok=application:start(oam),
-
-    ok=oam:new_db_info(),
-    NodesToConnect=db_cluster_instance:nodes(connect,?ClusterSpec),
-    [pong|_]=[net_adm:ping(Node)||Node<-NodesToConnect],
-    
-    LocalTypeList=[oam,db_etcd,nodelog],
-    [rd:add_local_resource(LocalType,node())||LocalType<-LocalTypeList],
-                   %% Make it available for oam - debug
-    TargetTypeList=[hw_conbee],
-    [rd:add_target_resource_type(Type)||Type<-TargetTypeList],
-    rd:trade_resources(),
-    
     timer:sleep(3000),
     ok.
