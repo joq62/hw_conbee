@@ -44,10 +44,10 @@ device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
                    {error,[eexists,WantedDeviceName]};
-	       {[Map],[]}->
-                   {ok,Map};
-	       {[],[Map]}->
-		   {ok,Map}
+	       {Maps,[]}->
+                   {ok,Maps};
+	       {[],Maps}->
+		   {ok,Maps}
            end,
     Result.
 
@@ -60,7 +60,7 @@ set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
     Result=case device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto) of
 	       {error,Reason}->
 		   {error,Reason}; 
-	       {ok,Map}->
+	       {ok,[Map]}->
 		   DeviceType=maps:get(device_type,Map),
 		   DeviceId=maps:get(device_num_id,Map),
 		   Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
