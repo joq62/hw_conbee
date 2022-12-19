@@ -44,9 +44,9 @@ device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
                    {error,[eexists,WantedDeviceName]};
-	       {Map,[]}->
+	       {[Map],[]}->
                    {ok,Map};
-	       {[],Map}->
+	       {[],[Map]}->
 		   {ok,Map}
            end,
     Result.
