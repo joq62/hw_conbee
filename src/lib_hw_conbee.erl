@@ -34,10 +34,14 @@
 %% --------------------------------------------------------------------
 device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
     AllInfoSensors=all_info("sensors",ConbeeAddr,ConbeePort,Crypto),
-    SensorsInfo=[{Name,NumId,ModelId,"sensors",State}||{Name,NumId,ModelId,State}<-AllInfoSensors,
+    SensorsInfo=[[{device_name,Name},{device_num_id,NumId},
+		  {device_model,ModelId},{device_type,"sensors"},
+		  {device_status,Status}]||{Name,NumId,ModelId,Status}<-AllInfoSensors,
 						       WantedDeviceName=:=Name],
     AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
-    LightsInfo=[{Name,NumId,ModelId,"lights",State}||{Name,NumId,ModelId,State}<-AllInfoLights,
+    LightsInfo=[[{device_name,Name},{device_num_id,NumId},
+		 {device_model,ModelId},{device_type,"lights"},
+		 {device_status,Status}]||{Name,NumId,ModelId,Status}<-AllInfoLights,
 						     WantedDeviceName=:=Name],
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
