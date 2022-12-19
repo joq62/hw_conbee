@@ -44,10 +44,10 @@ device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
                    {error,[eexists,WantedDeviceName]};
-	       {Maps,[]}->
-                   {ok,Maps};
-	       {[],Maps}->
-		   {ok,Maps}
+	       {Map,[]}->
+                   {ok,Map};
+	       {[],Map}->
+		   {ok,Map}
            end,
     Result.
 
@@ -60,7 +60,9 @@ set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
     Result=case device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto) of
 	       {error,Reason}->
 		   {error,Reason}; 
-	       {ok,[{_Name,DeviceId,_ModelId,DeviceType,_StateMap}]}->
+	       {ok,Map}->
+		   DeviceType=maps:get(device_type,Map),
+		   DeviceId=maps:get(device_num_id,Map),
 		   Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
 		   Body=case DeviceState of
 			    "on"->
@@ -73,7 +75,7 @@ set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
 				       [{<<"content-type">>, "application/json"}],Body),
 		   ResultHttp=get_reply(ConnPid,StreamRef),
 		   ok=gun:close(ConnPid),
-		   {ok,ResultHttp}
+		   ResultHttp
 	   end,
     Result.
 %% --------------------------------------------------------------------
