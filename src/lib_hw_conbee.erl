@@ -34,22 +34,20 @@
 %% --------------------------------------------------------------------
 device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
     AllInfoSensors=all_info("sensors",ConbeeAddr,ConbeePort,Crypto),
-    SensorsInfo=[[{device_name,Name},{device_num_id,NumId},
-		  {device_model,ModelId},{device_type,"sensors"},
-		  {device_status,Status}]||{Name,NumId,ModelId,Status}<-AllInfoSensors,
-						       WantedDeviceName=:=Name],
+    SensorsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		   device_type=>"sensors",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoSensors,
+								   WantedDeviceName=:=Name],
     AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
-    LightsInfo=[[{device_name,Name},{device_num_id,NumId},
-		 {device_model,ModelId},{device_type,"lights"},
-		 {device_status,Status}]||{Name,NumId,ModelId,Status}<-AllInfoLights,
-						     WantedDeviceName=:=Name],
+    LightsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		  device_type=>"lights",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoLights,
+								 WantedDeviceName=:=Name],
     Result=case {SensorsInfo,LightsInfo} of
                {[],[]}->
                    {error,[eexists,WantedDeviceName]};
-	       {List,[]}->
-                   {ok,List};
-	       {[],List}->
-		   {ok,List}
+	       {Maps,[]}->
+                   {ok,Maps};
+	       {[],Maps}->
+		   {ok,Maps}
            end,
     Result.
 
