@@ -27,7 +27,8 @@ clean:
 	rm -rf erl_cra* *.dir;
 	rm -rf rebar.lock;
 	rm -rf  application_specs cluster_specs host_specs;
-	rm -rf  application_deployments cluster_deployments;	
+	rm -rf  application_deployments cluster_deployments;
+	rm -rf  proto*
 	rm -rf tests_ebin
 	rm -rf ebin;
 	rm -rf Mnesia.*;

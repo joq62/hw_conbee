@@ -78,10 +78,11 @@ init([]) ->
     application:ensure_all_started(gun),
     os:cmd("docker restart "++?ConbeeContainer),
     timer:sleep(5*1000),
-    rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,["Server started",
-								  ip_addr,ConbeeAddr,
-								  ip_port,ConbeePort,
-								  crypto,Crypto]]),
+    sd:cast(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,["Servere started",node(),
+							      ip_addr,ConbeeAddr,
+							      ip_port,ConbeePort,
+							      crypto,Crypto]]),
+   
     {ok, #state{ip_addr=ConbeeAddr,
 		ip_port=ConbeePort,
 		crypto=Crypto}}.   
@@ -99,9 +100,9 @@ init([]) ->
 %% --------------------------------------------------------------------
 handle_call({set,DeviceName,DeviceState},_From, State) ->
 
-    rd:rpc_call(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[" set request",
-								  device_name,DeviceName,
-								  device_state,DeviceState]]), 
+    sd:cast(nodelog,nodelog,log,[notice,?MODULE_STRING,?LINE,[" set request",
+							      device_name,DeviceName,
+							      device_state,DeviceState]]),
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
@@ -140,6 +141,8 @@ handle_call({ping},_From, State) ->
     {reply, Reply, State};
 
 handle_call(Request, From, State) ->
+    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
+							       Request]]),
     Reply = {unmatched_signal,?MODULE,Request,From},
     {reply, Reply, State}.
 
@@ -151,7 +154,8 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_cast(Msg, State) ->
-    io:format("unmatched match cast ~p~n",[{Msg,?MODULE,?LINE}]),
+    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
+							       Msg]]),
     {noreply, State}.
 
 %% --------------------------------------------------------------------
@@ -168,7 +172,8 @@ handle_info(timeout, State) ->
     {noreply, State};
 
 handle_info(Info, State) ->
-    io:format("unmatched match~p~n",[{Info,?MODULE,?LINE}]), 
+    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
+							       Info]]),
     {noreply, State}.
 
 %% --------------------------------------------------------------------
