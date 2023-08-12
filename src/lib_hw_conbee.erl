@@ -34,7 +34,7 @@ what_devices("lights",ConbeeAddr,ConbeePort,Crypto)->
 what_devices("sensors",ConbeeAddr,ConbeePort,Crypto)->
     get_device_ids("sensors",ConbeeAddr,ConbeePort,Crypto);
 what_devices("switches",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("lights",ConbeeAddr,ConbeePort,Crypto).
+    get_device_ids("switches",ConbeeAddr,ConbeePort,Crypto).
 
 get_device_ids(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
     AllInfo=all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
@@ -49,7 +49,7 @@ get_device_ids(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
 is_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
     check_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto);
 is_reachable("sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("",DeviceName,ConbeeAddr,ConbeePort,Crypto);
+    check_reachable("sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto);
 is_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
     check_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto).
 
