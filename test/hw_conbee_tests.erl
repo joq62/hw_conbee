@@ -26,7 +26,7 @@ start()->
     io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
 
     ok=setup(),
-    pong=hw_conbee:ping(),
+    ok=hw_conbee_test(),
    % ok=test_1(),
    % ok=test_2(),
     
@@ -60,14 +60,15 @@ test_2()-> %  check the prototype
 %% Description: Based on hosts.config file checks which hosts are avaible
 %% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
 %% --------------------------------------------------------------------
-test_1()->
-    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
-    AllSensors=rd:rpc_call(hw_conbee,hw_conbee,get_all_device_info,["sensors"],2000),
+hw_conbee_test()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    
+     AllSensor=hw_conbee:get_all_device_info("sensors"),
     io:format("AllSensors ~p~n",[{AllSensors,?MODULE,?FUNCTION_NAME}]),
-    AllLights=rd:rpc_call(hw_conbee,hw_conbee,get_all_device_info,["lights"],2000),
+    AllLights=hw_conbee:get_all_device_info("lights"),
     io:format("AllLights ~p~n",[{AllLights,?MODULE,?FUNCTION_NAME}]),
+    
     ok.
-
 %% --------------------------------------------------------------------
 %% Function: available_hosts()
 %% Description: Based on hosts.config file checks which hosts are avaible
@@ -95,12 +96,5 @@ setup()->
     "172.17.0.2"=ConbeeAddr,
     80=ConbeePort,
     "24E285605D"=ConbeeKey,
-    application:set_env([{hw_conbee,[{conbee_addr,ConbeeAddr},
-				     {conbee_port,ConbeePort},
-				     {conbee_key,ConbeeKey}
-				    ]
-			 }
-			]),
-    
-
+   
     ok.

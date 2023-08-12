@@ -76,6 +76,67 @@ check_reachable(DeviceType,DeviceName,ConbeeAddr,ConbeePort,Crypto)->
 		end,
     IsReachable.
 			
+
+    
+    
+
+    
+    
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+
+
+device_info(DeviceType,WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    AllInfoSensors=all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
+    SensorsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		   device_type=>"sensors",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoSensors,
+								   WantedDeviceName=:=Name],
+    AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
+    LightsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		  device_type=>"lights",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoLights,
+								 WantedDeviceName=:=Name],
+    Result=case {SensorsInfo,LightsInfo} of
+               {[],[]}->
+                   {error,[eexists,WantedDeviceName]};
+	       {Maps,[]}->
+                   {ok,Maps};
+	       {[],Maps}->
+		   {ok,Maps}
+           end,
+    Result.
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
+    Result=case device_info(DeviceName) of
+	       {error,Reason}->
+		   {error,Reason};
+	       {ok,[DeviceInfo|_]}->
+		   ModelId=maps:get(device_model,DeviceInfo),
+		   [Module]=[maps:get(module,Map)||Map<-DeviceInfo,
+						   ModelId==maps:get(model_id,Map)],
+		   
+		   AllArgs=[DeviceName|Args],
+		   rpc:call(node(),Module,Function,AllArgs,2000);
+	       UnMatchedSignal->
+		   {error,UnMatchedSignal}
+	   end,
+    Result.
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+get(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto).
+
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc

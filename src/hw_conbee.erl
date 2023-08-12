@@ -23,12 +23,39 @@
 
 %% External exports
 -export([
-	 %lights
-	 set/2,
-	 get/1,
-	 device_info/1,
-	 get_all_device_info/1
-	 % 
+	 %% lights
+	 what_lights/0,
+	 info_light/1,
+	 is_reachable_light/1,
+
+	 turn_on_light/1,
+	 turn_off_light/1,
+	 is_on_light/1,
+	 is_off_light/1,
+	 set_brightness_light/2,
+	 get_brightness_light/1,
+	 set_color_light/2,
+	 get_color_light/1,
+	 %% sensors
+	 what_sensors/0,
+	 info_sensor/1,
+	 is_reachable_sensor/1,
+
+	 is_open_sensor/1,
+	 is_dark_sensor/1,
+	 is_daylight_sensor/1,
+	 lightlevel_sensor/1,
+	 lux_sensor/1,
+	 motion_sensor/1,
+	 %% Switch
+	 what_switches/0,
+	 info_switch/1,
+	 is_reachable_switch/1,
+
+	 is_on_switch/1, 
+	 is_off_switch/1,
+	 turn_on_switch/1,
+	 turn_off_switch/1
 
 	]).
 
@@ -77,23 +104,88 @@ stop()-> gen_server:call(?SERVER, {stop},infinity).
 %% --------------------------------------------------------------------
 %% API Functions
 %% --------------------------------------------------------------------
-device_info(WantedDeviceName)->
-    gen_server:call(?SERVER, {device_info,WantedDeviceName}).
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+
+%% lights
+what_lights()->
+    gen_server:call(?SERVER, {what_lights},infinity).
+info_light(DeviceName)->
+    gen_server:call(?SERVER, {info_light,DeviceName},infinity).
+is_reachable_light(DeviceName)->
+    gen_server:call(?SERVER, {is_reachable_light,DeviceName},infinity).
+
+turn_on_light(DeviceName)->
+    gen_server:call(?SERVER, {turn_on_light,DeviceName},infinity).
+turn_off_light(DeviceName)->
+    gen_server:call(?SERVER, {turn_off_light,DeviceName},infinity).
+is_on_light(DeviceName)->
+    gen_server:call(?SERVER, {is_on_light,DeviceName},infinity).
+is_off_light(DeviceName)->
+    gen_server:call(?SERVER, {is_off_light,DeviceName},infinity).
+
+set_brightness_light(DeviceName,Value)->
+    gen_server:call(?SERVER, {set_brightness_light,DeviceName,Value},infinity).
+get_brightness_light(DeviceName)->
+    gen_server:call(?SERVER, {get_brightness_light,DeviceName},infinity).
+set_color_light(DeviceName,Value)->
+    gen_server:call(?SERVER, {set_brightness_light,DeviceName,Value},infinity).
+get_color_light(DeviceName)->
+    gen_server:call(?SERVER, {get_brightness_light,DeviceName},infinity).
+
+%% sensors
+what_sensors()->
+    gen_server:call(?SERVER, {what_sensors},infinity).
+info_sensor(DeviceName)->
+    gen_server:call(?SERVER, {info_sensor,DeviceName},infinity).
+is_reachable_sensor(DeviceName)->
+    gen_server:call(?SERVER, {is_reachable_sensor,DeviceName},infinity).
+
+is_open_sensor(DeviceName)->
+    gen_server:call(?SERVER, {is_open_sensor,DeviceName},infinity).
+is_dark_sensor(DeviceName)->
+    gen_server:call(?SERVER, {is_dark_sensor,DeviceName},infinity).
+is_daylight_sensor(DeviceName)->
+    gen_server:call(?SERVER, {is_daylight_sensor,DeviceName},infinity).
+lightlevel_sensor(DeviceName)->
+    gen_server:call(?SERVER, {lightlevel_sensor,DeviceName},infinity).
+lux_sensor(DeviceName)->
+    gen_server:call(?SERVER, {lux_sensor,DeviceName}).
+motion_sensor(DeviceName)->
+    gen_server:call(?SERVER, {motion_sensor,DeviceName}).
+
+%% Switch
+what_switches()->
+    gen_server:call(?SERVER, {what_switches},infinity).
+info_switch(DeviceName)->
+    gen_server:call(?SERVER, {info_switch,DeviceName},infinity).
+is_reachable_switch(DeviceName)->
+    gen_server:call(?SERVER, {is_reachable_switch,DeviceName},infinity).
+
+is_on_switch(DeviceName)->
+    gen_server:call(?SERVER, {is_on_switch,DeviceName},infinity).
+is_off_switch(DeviceName)->
+    gen_server:call(?SERVER, {is_off_switch,DeviceName},infinity).
+turn_on_switch(DeviceName)->
+    gen_server:call(?SERVER, {turn_on_switch,DeviceName},infinity).
+turn_off_switch(DeviceName)->
+    gen_server:call(?SERVER, {turn_off_switch,DeviceName},infinity).
 
 
-set(DeviceName,DeviceState)->
-    gen_server:call(?SERVER, {set,DeviceName,DeviceState}).
-
-
-get(DeviceName)->
-    gen_server:call(?SERVER, {get,DeviceName}).
-
-get_all_device_info(DeviceType)->
-    gen_server:call(?SERVER, {get_all_device_info,DeviceType}).
-
-
-
-
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
 ping() ->
     gen_server:call(?SERVER, {ping}).
 
@@ -149,51 +241,66 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-handle_call({set,DeviceName,DeviceState},_From, State) ->
-    ?LOG_NOTICE("Server started ",["set request",
-				   device_name,DeviceName,
-				   device_state,DeviceState
-				  ]),
+%%---------------------------------------------------------------------
+%% Lights 
+%%---------------------------------------------------------------------
+handle_call({what_lights},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=rpc:call(node(),lib_hw_conbee,set,[DeviceName,DeviceState,
-					     ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,what_devices,["lights",ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
-handle_call({get,DeviceName},_From, State) ->
+handle_call({is_reachable_light,DeviceName},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=rpc:call(node(),lib_hw_conbee,get,[DeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,is_reachable,["lights",DeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
-
-
-handle_call({get_all_device_info,DeviceType},_From, State) ->
+%%---------------------------------------------------------------------
+%%  Sensors 
+%%---------------------------------------------------------------------
+handle_call({what_sensors},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=rpc:call(node(),lib_hw_conbee,all_info,[DeviceType,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,what_devices,["sensors",ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
-handle_call({device_info,WantedDeviceName},_From, State) ->
+handle_call({is_reachable_sensor,DeviceName},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
-    Reply=rpc:call(node(),lib_hw_conbee,device_info,[WantedDeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    Reply=rpc:call(node(),lib_hw_conbee,is_reachable,["sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
+    {reply, Reply, State};
+%%---------------------------------------------------------------------
+%%  Switches 
+%%---------------------------------------------------------------------
+handle_call({what_switches},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+    Reply=rpc:call(node(),lib_hw_conbee,what_devices,["switches",ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
 
-handle_call({get_state},_From, State) ->
-    Reply=State,
+handle_call({is_reachable_switch,DeviceName},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+    Reply=rpc:call(node(),lib_hw_conbee,is_reachable,["switches",DeviceName,ConbeeAddr,ConbeePort,Crypto],2*5000),
     {reply, Reply, State};
+%%---------------------------------------------------------------------
+%%  General 
+%%---------------------------------------------------------------------
+
 
 handle_call({ping},_From, State) ->
     Reply=pong,
     {reply, Reply, State};
 
 handle_call(Request, From, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Request]]),
+    ?LOG_WARNING("Unmatched signal",[Request]),
+
     Reply = {unmatched_signal,?MODULE,Request,From},
     {reply, Reply, State}.
 

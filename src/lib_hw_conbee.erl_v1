@@ -9,14 +9,16 @@
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
--include("device.hrl").
+
 %% --------------------------------------------------------------------
+-define(DeviceTypes,["sensors","lights"]).
 
 %% External exports
 -export([
-	 what_devices/4,
-	 is_reachable/5
-	 
+	 all_info/4,
+	 device_info/4,
+	 set/5,
+	 get/4
 	 
 	]). 
 
@@ -24,58 +26,66 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
-%%--------------------------------------------------------------------
-%% @doc
-%% @spec
-%% @end
-%%--------------------------------------------------------------------
-what_devices("lights",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("lights",ConbeeAddr,ConbeePort,Crypto);
-what_devices("sensors",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("sensors",ConbeeAddr,ConbeePort,Crypto);
-what_devices("switches",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("lights",ConbeeAddr,ConbeePort,Crypto).
 
-get_device_ids(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
-    AllInfo=all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
-    DeviceIds=[Name||{Name,NumId,ModelId,Status}<-AllInfo],
-    DeviceIds.
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    AllInfoSensors=all_info("sensors",ConbeeAddr,ConbeePort,Crypto),
+    SensorsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		   device_type=>"sensors",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoSensors,
+								   WantedDeviceName=:=Name],
+    AllInfoLights=all_info("lights",ConbeeAddr,ConbeePort,Crypto),
+    LightsInfo=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
+		  device_type=>"lights",device_status=>Status}||{Name,NumId,ModelId,Status}<-AllInfoLights,
+								 WantedDeviceName=:=Name],
+    Result=case {SensorsInfo,LightsInfo} of
+               {[],[]}->
+                   {error,[eexists,WantedDeviceName]};
+	       {Maps,[]}->
+                   {ok,Maps};
+	       {[],Maps}->
+		   {ok,Maps}
+           end,
+    Result.
 
-%%--------------------------------------------------------------------
-%% @doc
-%% @spec
-%% @end
-%%--------------------------------------------------------------------
-is_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto);
-is_reachable("sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("",DeviceName,ConbeeAddr,ConbeePort,Crypto);
-is_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto).
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+set(WantedDeviceName,DeviceState,ConbeeAddr,ConbeePort,Crypto)->
+    Result=case device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto) of
+	       {error,Reason}->
+		   {error,Reason}; 
+	       {ok,[Map]}->
+		   DeviceType=maps:get(device_type,Map),
+		   DeviceId=maps:get(device_num_id,Map),
+		   Cmd="/api/"++Crypto++"/"++DeviceType++"/"++DeviceId++"/state",
+		   Body=case DeviceState of
+			    "on"->
+				jsx:encode(#{<<"on">> => true});		   
+			    "off"->
+				jsx:encode(#{<<"on">> => false})
+			end,
+		   {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
+		   StreamRef = gun:put(ConnPid, Cmd, 
+				       [{<<"content-type">>, "application/json"}],Body),
+		   ResultHttp=get_reply(ConnPid,StreamRef),
+		   ok=gun:close(ConnPid),
+		   ResultHttp
+	   end,
+    Result.
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+get(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto)->
+    device_info(WantedDeviceName,ConbeeAddr,ConbeePort,Crypto).
 
-
-check_reachable(DeviceType,DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    DeviceMapList=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
-		     device_type=>DeviceType,device_status=>Status}||{Name,NumId,ModelId,Status}<-all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
-								     DeviceName=:=Name],
-    IsReachable=case DeviceMapList of
-		    []->
-			{error,["Eexists ",DeviceName,?MODULE,?LINE]};
-		    [DeviceMap]->
-			 ModelId=maps:get(device_model,DeviceMap),
-			[Module]=[maps:get(module,Map)||Map<-?DeviceInfo,
-						  ModelId==maps:get(model_id,Map)],
-			case rpc:call(node(),Module,is_reachable,[],5000) of
-			    {badrpc,Reason}->
-				{error,["unexpected error ",badrpc,Reason,DeviceType,DeviceName,?MODULE,?LINE]};
-			    true->
-				true;
-			    false ->
-				false
-			end
-		end,
-    IsReachable.
-			
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
