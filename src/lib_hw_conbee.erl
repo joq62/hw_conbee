@@ -132,3 +132,25 @@ format_info([{IdBin,Map}|T],Acc)->
     NewAcc=[{Name,NumId,ModelId,State}|Acc],
     format_info(T,NewAcc).
 
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+all_raw()->
+    {ok,ConbeeAddr}=application:get_env(ip),
+    {ok,ConbeePort}=application:get_env(port),
+    {ok,CmdSensors}=application:get_env(cmd_sensors),
+
+    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
+    Ref=gun:get(ConnPid,CmdSensors),
+    Result= all_raw(gun:await_body(ConnPid, Ref)),
+    ok=gun:close(ConnPid),
+    Result.
+
+all_raw({ok,Body})->
+    all_raw(Body);
+all_raw(Body)->
+    Map=jsx:decode(Body,[]),
+    maps:to_list(Map).
+

@@ -18,11 +18,16 @@
 %% --------------------------------------------------------------------
 -include("log.api").
 
--define(ConbeeContainer,"deconz"). 
+-define(ConbeeContainer,"deconz").
+-define(DeviceTypes,["lights","sensors"]). 
 -define(SERVER,?MODULE).
 
 %% External exports
 -export([
+	 %% basic
+	 all_info/1,
+
+
 	 %% lights
 	 what_lights/0,
 	 info_light/1,
@@ -109,7 +114,8 @@ stop()-> gen_server:call(?SERVER, {stop},infinity).
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
-
+all_info(DeviceType)->
+    gen_server:call(?SERVER, {all_info,DeviceType},infinity). 
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
@@ -241,6 +247,26 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
+
+%%---------------------------------------------------------------------
+%% Basic
+%%---------------------------------------------------------------------
+handle_call({all_info,DeviceType},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+ 
+    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
+    Cmd="/api/"++Crypto++"/"++DeviceType,
+    Ref=gun:get(ConnPid,Cmd),
+    Reply = case gun:await_body(ConnPid, Ref) of
+		{ok,Body}->
+		    Maps=jsx:decode(Body,[])
+	    end,
+    ok=gun:close(ConnPid),
+    {reply, Reply, State};
+
+
 %%---------------------------------------------------------------------
 %% Lights 
 %%---------------------------------------------------------------------
