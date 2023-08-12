@@ -62,6 +62,7 @@ check_reachable(DeviceType,DeviceName,ConbeeAddr,ConbeePort,Crypto)->
 		    []->
 			{error,["Eexists ",DeviceName,?MODULE,?LINE]};
 		    [DeviceMap]->
+			io:format("DBG DeviceMap ~p~n",[{DeviceMap,?MODULE,?LINE}]),
 			 ModelId=maps:get(device_model,DeviceMap),
 			[Module]=[maps:get(module,Map)||Map<-?DeviceInfo,
 						  ModelId==maps:get(model_id,Map)],
