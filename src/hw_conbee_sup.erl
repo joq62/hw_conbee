@@ -31,10 +31,7 @@ init([]) ->
                  period => 1},
     ChildSpecs = [
 		  #{id=>hw_conbee,
-		    start=>{hw_conbee,start_link,[]}},
-		  #{id=>zigbee_devices,
-		    start=>{zigbee_devices,start_link,[]}}
-		 	
+		    start=>{hw_conbee,start_link,[]}}		 	
 		 ],
     {ok, {SupFlags, ChildSpecs}}.
 
