@@ -66,7 +66,7 @@ check_reachable(DeviceType,DeviceName,ConbeeAddr,ConbeePort,Crypto)->
 			 ModelId=maps:get(device_model,DeviceMap),
 			[Module]=[maps:get(module,Map)||Map<-?DeviceInfo,
 						  ModelId==maps:get(model_id,Map)],
-			case rpc:call(node(),Module,is_reachable,[],5000) of
+			case rpc:call(node(),Module,is_reachable,[DeviceMap],5000) of
 			    {badrpc,Reason}->
 				{error,["unexpected error ",badrpc,Reason,DeviceType,DeviceName,?MODULE,?LINE]};
 			    true->
