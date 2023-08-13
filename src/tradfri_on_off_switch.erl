@@ -7,7 +7,7 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(tradfri_control_outlet).
+-module(tradfri_on_off_switch).
  
 -behaviour(gen_server). 
 
@@ -22,21 +22,25 @@
 -define(SERVER,?MODULE).
 
 
-% <<"3">> =>
-%      #{<<"etag">> => <<"49f06dd06302beebb3ff57e0ee354bb9">>,
-%        <<"hascolor">> => false,
-%        <<"lastannounced">> => <<"2023-04-26T05:52:42Z">>,
-%        <<"lastseen">> => <<"2023-08-20T14:51Z">>,
+%  <<"2">> =>
+%      #{<<"config">> =>
+%            #{<<"alert">> => <<"none">>,<<"battery">> => 100,
+%              <<"group">> => <<"2">>,<<"on">> => true,
+%              <<"reachable">> => true},
+%        <<"ep">> => 1,
+%        <<"etag">> => <<"4ff21ea09584755bf25c1383deee4107">>,
+%        <<"lastannounced">> => <<"2023-08-16T13:05:32Z">>,
+%        <<"lastseen">> => <<"2023-08-20T14:33Z">>,
 %        <<"manufacturername">> => <<"IKEA of Sweden">>,
-%        <<"modelid">> => <<"TRADFRI control outlet">>,
-%        <<"name">> => <<"switch_lamp_balcony">>,
+%        <<"mode">> => 1,
+%        <<"modelid">> => <<"TRADFRI on/off switch">>,
+%        <<"name">> => <<"switch_all">>,
 %        <<"state">> =>
-%            #{<<"alert">> => <<"none">>,
-%              <<"on">> => false,
-%               <<"reachable">> => true},
-%        <<"swversion">> => <<"2.0.024">>,
-%        <<"type">> => <<"On/Off plug-in unit">>,
-%        <<"uniqueid">> => <<"cc:86:ec:ff:fe:7e:f3:27-01">>},
+%            #{<<"buttonevent">> => 2002,
+%              <<"lastupdated">> => <<"2023-06-16T23:25:00.900">>},
+%        <<"swversion">> => <<"2.2.010">>,
+%        <<"type">> => <<"ZHASwitch">>,
+%        <<"uniqueid">> => <<"84:ba:20:ff:fe:73:2e:33-01-1000">>},
 
 
 %% External exports
@@ -246,20 +250,23 @@ handle_call({is_alert,{[],[{_Num,Map}]}},_From, State) ->
 
 handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
     DeviceMap=maps:get(<<"state">>,Map),
-    Reply=maps:get(<<"on">>,DeviceMap),
+    Reply=case maps:get(<<"on">>,DeviceMap) of
+	      1001->
+		  true;
+	      1002->
+		  true;
+	      1003->
+		  true;
+	      2001 ->
+		  false;
+	      2002 ->
+		  false;
+	      2003 ->
+		  false
+	  end,
     {reply, Reply, State};
 
 %%-- set
-
-handle_call({turn_on,{[],[{Num,Map}]}},_From, State) ->
-    Reply={binary_to_list(Num),<<"on">>,true},
-    {reply, Reply, State};
-
-handle_call({turn_off,{[],[{Num,Map}]}},_From, State) ->
-    Reply={binary_to_list(Num),<<"on">>,false},
-    {reply, Reply, State};
-
-
 
 handle_call({ping},_From, State) ->
     Reply=pong,
