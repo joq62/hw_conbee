@@ -20,7 +20,7 @@
 
 
 -define(SERVER,?MODULE).
-
+%% Not complete
 % #{<<"colorcapabilities">> => 0,<<"ctmax">> => 65279,
 %        <<"ctmin">> => 0,
 %        <<"etag">> => <<"92ebe9e0e962a139187541fb9109ec26">>,
@@ -31,11 +31,16 @@
 %        <<"modelid">> => <<"TRADFRI bulb E27 CWS 806lm">>,
 %        <<"name">> => <<"light_color_joakim">>,
 %        <<"state">> =>
-%            #{<<"alert">> => <<"none">>,<<"bri">> => 109,
-%              <<"colormode">> => <<"xy">>,<<"ct">> => 250,
-%              <<"effect">> => <<"none">>,<<"hue">> => 44378,
-%              <<"on">> => true,<<"reachable">> => true,<<"sat">> => 254,
-%              <<"xy">> => [0.172,0.0438]},
+%            #{<<"alert">> => <<"none">>,
+%              <<"bri">> => 109,
+%              <<"colormode">> => <<"xy">>,
+%%             <<"ct">> => 250,
+%              <<"effect">> => <<"none">>,
+%%             <<"hue">> => 44378,
+%              <<"sat">> => 254,
+%              <<"xy">> => [0.172,0.0438],
+%              <<"on">> => true,
+%              <<"reachable">> => true},
 %        <<"swversion">> => <<"1.0.021">>,
 %        <<"type">> => <<"Extended color light">>,
 %        <<"uniqueid">> => <<"2c:11:65:ff:fe:d4:8a:53-01">>}
