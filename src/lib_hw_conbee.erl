@@ -74,7 +74,7 @@ set(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
 		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys],
 		   WantedNumDeviceMaps=[{Num,WantedMap}||{Num,WantedMap}<-NumDeviceMaps,
 							 NameBin=:=maps:get(<<"name">>,WantedMap)],		 
-		   {Num,Key,Value}=rpc:call(node(),Module,Function,[{Args,WantedNumDeviceMaps}],2*5000),
+		   {Num,Key,Value}=rpc:call(node(),Module,Function,[{Args,Name,WantedNumDeviceMaps}],2*5000),
 		   DeviceType=binary_to_list(DeviceTypeBin),
 		   set_state(Num,Key,Value,DeviceType,ConbeeAddr,ConbeePort,Crypto)		   
 	   end,
