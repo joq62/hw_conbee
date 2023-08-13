@@ -147,7 +147,7 @@ uniqueid({[],Name,NumDeviceMaps})->
 lastupdate({[],Name,NumDeviceMaps})->
     gen_server:call(?SERVER, {lastupdate,{[],Name,NumDeviceMaps}},infinity).
 is_open({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {is_presence,{[],Name,NumDeviceMaps}},infinity). 
+    gen_server:call(?SERVER, {is_open,{[],Name,NumDeviceMaps}},infinity). 
 
 %% config 
 is_on({[],Name,NumDeviceMaps})->
