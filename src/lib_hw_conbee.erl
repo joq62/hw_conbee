@@ -43,7 +43,11 @@ get(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
 		   {ok,Module}=sd:call(etcd,etcd_zigbee_device,get_module,[NameBin],5000),
 		   Maps=get_maps(DeviceType,ConbeeAddr,ConbeePort,Crypto),
 		   Keys=maps:keys(Maps),
-		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys]
+		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys],
+		   WantedNumDeviceMaps=[{Num,WantedMap}||{Num,WantedMap}<-NumDeviceMaps,
+							 NameBin=:=maps:get(<<"name">>,WantedMap)],		 
+		   
+		   WantedNumDeviceMaps
 		   %rpc:call(node(),Module,Function,[{Args,Maps}],2*5000)
 	   end,
     Result.
