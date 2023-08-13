@@ -324,6 +324,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 get_nummap(Name,NumMaps)->
+    io:format("Name ~p~n",[{Name,?MODULE,?LINE}]),
+    io:format("NumMaps ~p~n",[{NumMaps,?MODULE,?LINE}]),
+
     NameBin=list_to_binary(Name),
     [{Num,Map}||{Num,Map}<-NumMaps,
 		?Type=:=maps:get(<<"type">>,Map),

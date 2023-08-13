@@ -29,8 +29,6 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
-
-
 get_nummap(Name,Type,NumMaps)->
     NameBin=list_to_binary(Name),
     [{Num,Map}||{Num,Map}<-NumMaps,
