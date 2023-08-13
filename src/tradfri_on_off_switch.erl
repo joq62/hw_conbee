@@ -250,7 +250,7 @@ handle_call({is_alert,{[],[{_Num,Map}]}},_From, State) ->
 
 handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
     DeviceMap=maps:get(<<"state">>,Map),
-    Reply=case maps:get(<<"on">>,DeviceMap) of
+    Reply=case maps:get(<<"buttonevent">>,DeviceMap) of
 	      1001->
 		  true;
 	      1002->
