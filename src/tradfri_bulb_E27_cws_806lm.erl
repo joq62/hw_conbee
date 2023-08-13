@@ -279,8 +279,7 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_cast(Msg, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Msg]]),
+    ?LOG_WARNING("Unmatched signal",[Msg]),
     {noreply, State}.
 
 %% --------------------------------------------------------------------
@@ -293,14 +292,11 @@ handle_cast(Msg, State) ->
 
 handle_info(timeout, State) -> 
     io:format("timeout ~p~n",[{?MODULE,?LINE}]), 
-    
     {noreply, State};
 
 handle_info(Info, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Info]]),
+    ?LOG_WARNING("Unmatched signal",[Info]),
     {noreply, State}.
-
 %% --------------------------------------------------------------------
 %% Function: terminate/2
 %% Description: Shutdown the server

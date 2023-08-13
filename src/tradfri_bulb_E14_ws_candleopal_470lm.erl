@@ -7,7 +7,7 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(tradfri_on_off_switch).
+-module(tradfri_bulb_E14_ws_candleopal_470lm).  
  
 -behaviour(gen_server). 
 
@@ -18,29 +18,31 @@
 %% --------------------------------------------------------------------
 -include("log.api").
 
- 
--define(SERVER,?MODULE).
--define(Type,<<"ZHASwitch">>).
 
-%  <<"2">> =>
-%      #{<<"config">> =>
-%            #{<<"alert">> => <<"none">>,<<"battery">> => 100,
-%              <<"group">> => <<"2">>,<<"on">> => true,
-%              <<"reachable">> => true},
-%        <<"ep">> => 1,
-%        <<"etag">> => <<"4ff21ea09584755bf25c1383deee4107">>,
-%        <<"lastannounced">> => <<"2023-08-16T13:05:32Z">>,
-%        <<"lastseen">> => <<"2023-08-20T14:33Z">>,
+-define(SERVER,?MODULE).
+-define(Type,<<"Color temperature light">>).
+
+% <<"7">> =>
+%      #{<<"colorcapabilities">> => 0,<<"ctmax">> => 65279,
+%        <<"ctmin">> => 0,
+%        <<"etag">> => <<"bb1d79d4264fad7d57e1f881123fd6d1">>,
+%        <<"hascolor">> => true,
+%        <<"lastannounced">> => <<"2023-08-28T19:36:36Z">>,
+%        <<"lastseen">> => <<"2023-08-28T19:39Z">>,
 %        <<"manufacturername">> => <<"IKEA of Sweden">>,
-%        <<"mode">> => 1,
-%        <<"modelid">> => <<"TRADFRI on/off switch">>,
-%        <<"name">> => <<"switch_all">>,
+%        <<"modelid">> => <<"TRADFRIbulbE14WScandleopal470lm">>,
+%        <<"name">> => <<"blue_lamp_inglasad">>,
 %        <<"state">> =>
-%            #{<<"buttonevent">> => 2002,
-%              <<"lastupdated">> => <<"2023-06-16T23:25:00.900">>},
-%        <<"swversion">> => <<"2.2.010">>,
-%        <<"type">> => <<"ZHASwitch">>,
-%        <<"uniqueid">> => <<"84:ba:20:ff:fe:73:2e:33-01-1000">>},
+%            #{<<"alert">> => <<"none">>,
+%              <<"bri">> => 1,
+%              <<"colormode">> => <<"ct">>,
+%%             <<"ct">> => 454,
+%              <<"on">> => true,
+%              <<"reachable">> => true},
+%        <<"swversion">> => <<"1.0.032">>,
+%        <<"type">> => <<"Color temperature light">>,
+%        <<"uniqueid">> => <<"54:0f:57:ff:fe:39:83:b7-01">>},
+
 
 
 %% External exports
@@ -48,6 +50,7 @@
 	 %% basic
 	
 	 num/1,
+	 
 	 etag/1,
 	 hascolor/1,
 	 lastannounced/1,
@@ -59,13 +62,14 @@
 	 uniqueid/1,
 
 	 %% state
-	 button_value/1, 
-
-	 %%config
 	 is_alert/1,
 	 is_on/1,
+	 get_brightness/1,
+	 set_brightness/1,
+
+	 turn_on/1,
+	 turn_off/1,
 	 is_reachable/1,
-	 
 	 
 	 all_info/1
 	 
@@ -127,12 +131,12 @@ all_info(RawMap)->
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
-num({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {num,{[],Name,WantedNumDeviceMaps}},infinity). 
-  
-hascolor({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"hascolor">>,{[],Name,WantedNumDeviceMaps}},infinity).
 
+%% Basic
+num({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"num">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+hascolor({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"hascolor">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 etag({[],Name,WantedNumDeviceMaps})->
     gen_server:call(?SERVER, {basic,<<"etag">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 lastannounced({[],Name,WantedNumDeviceMaps})->
@@ -150,18 +154,24 @@ type({[],Name,WantedNumDeviceMaps})->
 uniqueid({[],Name,WantedNumDeviceMaps})->basic,
     gen_server:call(?SERVER, {basic,<<"uniqueid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 
-%% State
 %% state_get
-
-button_value({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"buttonevent">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-%% config
 is_alert({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"alert">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+    gen_server:call(?SERVER, {state_get,<<"alert">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 is_on({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+    gen_server:call(?SERVER, {state_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 is_reachable({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+    gen_server:call(?SERVER, {state_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+
+get_brightness({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_get,<<"brightness">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+%% state_set
+turn_on({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_set,turn_on,{[],Name,WantedNumDeviceMaps}},infinity). 
+turn_off({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_set,turn_off,{[],Name,WantedNumDeviceMaps}},infinity). 
+set_brightness({[Value],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_set,set_brightness,{[Value],Name,WantedNumDeviceMaps}},infinity).
+
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -187,7 +197,7 @@ ping() ->
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-   
+  
     
     ?LOG_NOTICE("Server started ",["Servere started",node()]),
    
@@ -205,10 +215,10 @@ init([]) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 
-
-handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"name">>,Map)),
-    {reply, Reply, State};
+%%---------------------------------------------------------------------
+%% Basic
+%%---------------------------------------------------------------------
+%% basic
 
 handle_call({num,{[],Name,NumMaps}},_From, State) ->
     [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
@@ -228,27 +238,6 @@ handle_call({basic,Key,{[],Name,NumMaps}},_From, State) ->
     {reply, Reply, State};
 
 %% state_get
-
-handle_call({state_get,<<"buttonevent">>,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
-    DeviceMap=maps:get(<<"state">>,Map),
-    Reply=case maps:get(<<"buttonevent">>,DeviceMap) of
-	      1001->
-		  true;
-	      1002->
-		  true;
-	      1003->
-		  true;
-	      2001 ->
-		  false;
-	      2002 ->
-		  false;
-	      2003 ->
-		  false
-	  end,
-    {reply, Reply, State};
-
-
 handle_call({state_get,Key,{[],Name,NumMaps}},_From, State) ->
     [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     DeviceMap=maps:get(<<"state">>,Map),
@@ -260,18 +249,20 @@ handle_call({state_get,Key,{[],Name,NumMaps}},_From, State) ->
 		  Value
 	  end,
     {reply, Reply, State};
-%% config_get
-handle_call({config_get,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
-    DeviceMap=maps:get(<<"config">>,Map),
-    Value=maps:get(Key,DeviceMap),
-    Reply=case is_binary(Value) of
-	      true->
-		  binary_to_list(Value);
-	      false->
-		  Value
-	  end,
+
+
+%% state_set
+handle_call({state_set,turn_on,{[],Name,NumMaps}},_From, State) ->
+    [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+    Reply={binary_to_list(Num),<<"on">>,true},
     {reply, Reply, State};
+
+handle_call({state_set,turn_off,{[],Name,NumMaps}},_From, State) ->
+    [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+    Reply={binary_to_list(Num),<<"on">>,false},
+    {reply, Reply, State};
+
+
 
 handle_call({ping},_From, State) ->
     Reply=pong,

@@ -20,7 +20,7 @@
 
  
 -define(SERVER,?MODULE).
-
+-define(Type,<<"ZHAOpenClose">>).
 
 % <<"8">> =>
 %      #{<<"config">> =>
@@ -198,62 +198,31 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-handle_call({num,{[],Name_Glurk,NumMaps}},_From, State) ->
-    Reply=binary_to_list(Name_Glurk),
+handle_call({num,{[],Name,NumMaps}},_From, State) ->
+    [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+    Reply=binary_to_list(Num),
     {reply, Reply, State};
 
-handle_call({modelid,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"modelid">>,Map)),
+handle_call({basic,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+    Reply=binary_to_list(maps:get(Key,Map)),
     {reply, Reply, State};
 
-handle_call({etag,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"etag">>,Map)),
-    {reply, Reply, State};
+%% state_get
 
-handle_call({lastannounced,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"lastannounced">>,Map)),
-    {reply, Reply, State};
-
-handle_call({lastseen,{[],Name,Glurk}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"lastseen">>,Glurk)),
-    {reply, Reply, State};
-
-handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"name">>,Map)),
-    {reply, Reply, State};
-
-handle_call({swversion,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"swversion">>,Map)),
-    {reply, Reply, State};
-
-handle_call({type,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"type">>,Map)),
-    {reply, Reply, State};
-
-handle_call({uniqueid,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"uniqueid">>,Map)),
-    {reply, Reply, State};
-
-%% state
-handle_call({lastupdate,{[],[{_Num,Map}]}},_From, State) ->
+handle_call({state_get,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     DeviceMap=maps:get(<<"state">>,Map),
-    Reply=maps:get(<<"lastupdate">>,DeviceMap),
+    Reply=maps:get(Key,DeviceMap),
     {reply, Reply, State};
 
-handle_call({is_presence,{[],[{_Num,Map}]}},_From, State) ->
-    DeviceMap=maps:get(<<"state">>,Map),
-    Reply=maps:get(<<"is_presence">>,DeviceMap),
-    {reply, Reply, State};
 %% config
-handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
+handle_call({config_get,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     ConfigMap=maps:get(<<"config">>,Map),
-    Reply=maps:get(<<"on">>,ConfigMap),
+    Reply=maps:get(Key,ConfigMap),
     {reply, Reply, State};
 
-handle_call({is_reachable,{[],[{_Num,Map}]}},_From, State) ->
-    ConfigMap=maps:get(<<"config">>,Map),
-    Reply=maps:get(<<"reachable">>,ConfigMap),
-    {reply, Reply, State};
 
 handle_call({ping},_From, State) ->
     Reply=pong,
@@ -273,8 +242,7 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_cast(Msg, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Msg]]),
+    ?LOG_WARNING("Unmatched signal",[Msg]),
     {noreply, State}.
 
 %% --------------------------------------------------------------------
@@ -284,17 +252,13 @@ handle_cast(Msg, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-
 handle_info(timeout, State) -> 
     io:format("timeout ~p~n",[{?MODULE,?LINE}]), 
-    
     {noreply, State};
 
 handle_info(Info, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Info]]),
+    ?LOG_WARNING("Unmatched signal",[Info]),
     {noreply, State}.
-
 %% --------------------------------------------------------------------
 %% Function: terminate/2
 %% Description: Shutdown the server

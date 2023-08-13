@@ -7,8 +7,8 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(tradfri_on_off_switch).
- 
+-module(lumi_sensor_motion_aq2).
+  
 -behaviour(gen_server). 
 
 %% --------------------------------------------------------------------
@@ -20,27 +20,25 @@
 
  
 -define(SERVER,?MODULE).
--define(Type,<<"ZHASwitch">>).
 
-%  <<"2">> =>
+
+% <<"10">> =>
 %      #{<<"config">> =>
-%            #{<<"alert">> => <<"none">>,<<"battery">> => 100,
-%              <<"group">> => <<"2">>,<<"on">> => true,
-%              <<"reachable">> => true},
+%            #{<<"battery">> => 100,<<"duration">> => 90,<<"on">> => true,
+ %             <<"reachable">> => true,<<"temperature">> => 2900},
 %        <<"ep">> => 1,
-%        <<"etag">> => <<"4ff21ea09584755bf25c1383deee4107">>,
-%        <<"lastannounced">> => <<"2023-08-16T13:05:32Z">>,
-%        <<"lastseen">> => <<"2023-08-20T14:33Z">>,
-%        <<"manufacturername">> => <<"IKEA of Sweden">>,
-%        <<"mode">> => 1,
-%        <<"modelid">> => <<"TRADFRI on/off switch">>,
-%        <<"name">> => <<"switch_all">>,
+%        <<"etag">> => <<"10f0c92d5f3a40eb0a8fc3c7c545ea71">>,
+%        <<"lastannounced">> => <<"2022-12-20T20:22:40Z">>,
+%        <<"lastseen">> => <<"2023-08-20T14:01Z">>,
+%        <<"manufacturername">> => <<"LUMI">>,
+%        <<"modelid">> => <<"lumi.sensor_motion.aq2">>,
+%        <<"name">> => <<"protype_motion_aqara">>,
 %        <<"state">> =>
-%            #{<<"buttonevent">> => 2002,
-%              <<"lastupdated">> => <<"2023-06-16T23:25:00.900">>},
-%        <<"swversion">> => <<"2.2.010">>,
-%        <<"type">> => <<"ZHASwitch">>,
-%        <<"uniqueid">> => <<"84:ba:20:ff:fe:73:2e:33-01-1000">>},
+%            #{<<"lastupdated">> => <<"2023-08-20T14:01:32.639">>,
+%              <<"presence">> => false},
+%        <<"swversion">> => <<"20170627">>,
+%        <<"type">> => <<"ZHAPresence">>,
+%        <<"uniqueid">> => <<"00:15:8d:00:01:dd:a2:b8-01-0406">>},
 
 
 %% External exports
@@ -49,7 +47,6 @@
 	
 	 num/1,
 	 etag/1,
-	 hascolor/1,
 	 lastannounced/1,
 	 lastseen/1,
 	 modelid/1,
@@ -59,13 +56,11 @@
 	 uniqueid/1,
 
 	 %% state
-	 button_value/1, 
-
-	 %%config
-	 is_alert/1,
+	 lastupdate/1,
+	 is_presence/1,
+	 %% config
 	 is_on/1,
 	 is_reachable/1,
-	 
 	 
 	 all_info/1
 	 
@@ -127,41 +122,40 @@ all_info(RawMap)->
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
-num({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {num,{[],Name,WantedNumDeviceMaps}},infinity). 
-  
-hascolor({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"hascolor">>,{[],Name,WantedNumDeviceMaps}},infinity).
 
-etag({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"etag">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-lastannounced({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"lastannounced">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-lastseen({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"lastseen">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-modelid({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"modelid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-name({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"name">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-swversion({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"swversion">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-type({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"type">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-uniqueid({[],Name,WantedNumDeviceMaps})->basic,
-    gen_server:call(?SERVER, {basic,<<"uniqueid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+num({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {num,{[],WantedNumDeviceMaps}},infinity). 
+ 
+etag({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {etag,{[],WantedNumDeviceMaps}},infinity). 
+lastannounced({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastannounced,{[],WantedNumDeviceMaps}},infinity). 
+lastseen({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastseen,{[],WantedNumDeviceMaps}},infinity). 
+modelid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {modelid,{[],WantedNumDeviceMaps}},infinity). 
+name({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {name,{[],WantedNumDeviceMaps}},infinity). 
+swversion({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {swversion,{[],WantedNumDeviceMaps}},infinity). 
+type({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {type,{[],WantedNumDeviceMaps}},infinity). 
+uniqueid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {uniqueid,{[],WantedNumDeviceMaps}},infinity). 
 
 %% State
-%% state_get
+lastupdate({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastupdate,{[],WantedNumDeviceMaps}},infinity).
+is_presence({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_presence,{[],WantedNumDeviceMaps}},infinity). 
 
-button_value({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"buttonevent">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-%% config
-is_alert({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"alert">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-is_on({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-is_reachable({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+%% config 
+is_on({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_on,{[],WantedNumDeviceMaps}},infinity). 
+is_reachable({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_reachable,{[],WantedNumDeviceMaps}},infinity). 
+
+
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -204,73 +198,61 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
+handle_call({num,{[],[{Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(Num),
+    {reply, Reply, State};
 
+handle_call({modelid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"modelid">>,Map)),
+    {reply, Reply, State};
+
+handle_call({etag,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"etag">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastannounced,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastannounced">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastseen,{[],[{Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastseen">>,Map)),
+    {reply, Reply, State};
 
 handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
     Reply=binary_to_list(maps:get(<<"name">>,Map)),
     {reply, Reply, State};
 
-handle_call({num,{[],Name,NumMaps}},_From, State) ->
-    [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
-    Reply=binary_to_list(Num),
+handle_call({swversion,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"swversion">>,Map)),
     {reply, Reply, State};
 
-
-handle_call({basic,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
-    Value=maps:get(Key,Map),
-    Reply=case is_binary(Value) of
-	      true->
-		  binary_to_list(Value);
-	      false->
-		  Value
-	  end,
+handle_call({type,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"type">>,Map)),
     {reply, Reply, State};
 
-%% state_get
+handle_call({uniqueid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"uniqueid">>,Map)),
+    {reply, Reply, State};
 
-handle_call({state_get,<<"buttonevent">>,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+%% state
+handle_call({lastupdate,{[],[{_Num,Map}]}},_From, State) ->
     DeviceMap=maps:get(<<"state">>,Map),
-    Reply=case maps:get(<<"buttonevent">>,DeviceMap) of
-	      1001->
-		  true;
-	      1002->
-		  true;
-	      1003->
-		  true;
-	      2001 ->
-		  false;
-	      2002 ->
-		  false;
-	      2003 ->
-		  false
-	  end,
+    Reply=maps:get(<<"lastupdate">>,DeviceMap),
     {reply, Reply, State};
 
-
-handle_call({state_get,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+handle_call({is_presence,{[],[{_Num,Map}]}},_From, State) ->
     DeviceMap=maps:get(<<"state">>,Map),
-    Value=maps:get(Key,DeviceMap),
-    Reply=case is_binary(Value) of
-	      true->
-		  binary_to_list(Value);
-	      false->
-		  Value
-	  end,
+    Reply=maps:get(<<"is_presence">>,DeviceMap),
     {reply, Reply, State};
-%% config_get
-handle_call({config_get,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
-    DeviceMap=maps:get(<<"config">>,Map),
-    Value=maps:get(Key,DeviceMap),
-    Reply=case is_binary(Value) of
-	      true->
-		  binary_to_list(Value);
-	      false->
-		  Value
-	  end,
+%% config
+handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
+    ConfigMap=maps:get(<<"config">>,Map),
+    Reply=maps:get(<<"on">>,ConfigMap),
+    {reply, Reply, State};
+
+handle_call({is_reachable,{[],[{_Num,Map}]}},_From, State) ->
+    ConfigMap=maps:get(<<"config">>,Map),
+    Reply=maps:get(<<"reachable">>,ConfigMap),
     {reply, Reply, State};
 
 handle_call({ping},_From, State) ->

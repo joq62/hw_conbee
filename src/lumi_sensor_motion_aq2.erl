@@ -7,7 +7,7 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(lumi_sensor_motion_aq2).
+-module(lumi_sensor_motion_aq2).  
   
 -behaviour(gen_server). 
 
@@ -20,7 +20,7 @@
 
  
 -define(SERVER,?MODULE).
-
+-define(Type,<<"ZHAPresence">>).
 
 % <<"10">> =>
 %      #{<<"config">> =>
@@ -122,38 +122,38 @@ all_info(RawMap)->
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
-
-num({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {num,{[],WantedNumDeviceMaps}},infinity). 
+num({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {num,{[],Name,WantedNumDeviceMaps}},infinity). 
  
-etag({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {etag,{[],WantedNumDeviceMaps}},infinity). 
-lastannounced({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {lastannounced,{[],WantedNumDeviceMaps}},infinity). 
-lastseen({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {lastseen,{[],WantedNumDeviceMaps}},infinity). 
-modelid({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {modelid,{[],WantedNumDeviceMaps}},infinity). 
-name({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {name,{[],WantedNumDeviceMaps}},infinity). 
-swversion({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {swversion,{[],WantedNumDeviceMaps}},infinity). 
-type({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {type,{[],WantedNumDeviceMaps}},infinity). 
-uniqueid({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {uniqueid,{[],WantedNumDeviceMaps}},infinity). 
+etag({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"etag">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+lastannounced({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"lastannounced">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+lastseen({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"lastseen">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+modelid({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"modelid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+name({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"name">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+swversion({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"swversion">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+type({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"type">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+uniqueid({[],Name,WantedNumDeviceMaps})->basic,
+    gen_server:call(?SERVER, {basic,<<"uniqueid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 
 %% State
-lastupdate({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {lastupdate,{[],WantedNumDeviceMaps}},infinity).
-is_presence({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {is_presence,{[],WantedNumDeviceMaps}},infinity). 
+lastupdate({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_get,<<"lastupdate">>,{[],Name,WantedNumDeviceMaps}},infinity).
+
+is_presence({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_get,<<"presence">>,{[],Name,WantedNumDeviceMaps}},infinity).
 
 %% config 
-is_on({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {is_on,{[],WantedNumDeviceMaps}},infinity). 
-is_reachable({[],WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {is_reachable,{[],WantedNumDeviceMaps}},infinity). 
+is_on({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {config_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+is_reachable({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {config_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 
 
 
@@ -198,61 +198,29 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-handle_call({num,{[],[{Num,Map}]}},_From, State) ->
+handle_call({num,{[],Name,NumMaps}},_From, State) ->
+    [{Num,_Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     Reply=binary_to_list(Num),
     {reply, Reply, State};
 
-handle_call({modelid,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"modelid">>,Map)),
+handle_call({basic,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
+    Reply=binary_to_list(maps:get(Key,Map)),
     {reply, Reply, State};
 
-handle_call({etag,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"etag">>,Map)),
-    {reply, Reply, State};
+%% state_get
 
-handle_call({lastannounced,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"lastannounced">>,Map)),
-    {reply, Reply, State};
-
-handle_call({lastseen,{[],[{Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"lastseen">>,Map)),
-    {reply, Reply, State};
-
-handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"name">>,Map)),
-    {reply, Reply, State};
-
-handle_call({swversion,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"swversion">>,Map)),
-    {reply, Reply, State};
-
-handle_call({type,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"type">>,Map)),
-    {reply, Reply, State};
-
-handle_call({uniqueid,{[],[{_Num,Map}]}},_From, State) ->
-    Reply=binary_to_list(maps:get(<<"uniqueid">>,Map)),
-    {reply, Reply, State};
-
-%% state
-handle_call({lastupdate,{[],[{_Num,Map}]}},_From, State) ->
+handle_call({state_get,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     DeviceMap=maps:get(<<"state">>,Map),
-    Reply=maps:get(<<"lastupdate">>,DeviceMap),
+    Reply=maps:get(Key,DeviceMap),
     {reply, Reply, State};
 
-handle_call({is_presence,{[],[{_Num,Map}]}},_From, State) ->
-    DeviceMap=maps:get(<<"state">>,Map),
-    Reply=maps:get(<<"is_presence">>,DeviceMap),
-    {reply, Reply, State};
 %% config
-handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
+handle_call({config_get,Key,{[],Name,NumMaps}},_From, State) ->
+    [{_Num,Map}]=lib_hw_conbee:get_nummap(Name,?Type,NumMaps),
     ConfigMap=maps:get(<<"config">>,Map),
-    Reply=maps:get(<<"on">>,ConfigMap),
-    {reply, Reply, State};
-
-handle_call({is_reachable,{[],[{_Num,Map}]}},_From, State) ->
-    ConfigMap=maps:get(<<"config">>,Map),
-    Reply=maps:get(<<"reachable">>,ConfigMap),
+    Reply=maps:get(Key,ConfigMap),
     {reply, Reply, State};
 
 handle_call({ping},_From, State) ->
@@ -261,10 +229,8 @@ handle_call({ping},_From, State) ->
 
 handle_call(Request, From, State) ->
     ?LOG_WARNING("Unmatched signal",[Request]),
-
     Reply = {unmatched_signal,?MODULE,Request,From},
     {reply, Reply, State}.
-
 %% --------------------------------------------------------------------
 %% Function: handle_cast/2
 %% Description: Handling cast messages
@@ -273,8 +239,7 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_cast(Msg, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Msg]]),
+    ?LOG_WARNING("Unmatched signal",[Msg]),
     {noreply, State}.
 
 %% --------------------------------------------------------------------
@@ -287,14 +252,11 @@ handle_cast(Msg, State) ->
 
 handle_info(timeout, State) -> 
     io:format("timeout ~p~n",[{?MODULE,?LINE}]), 
-    
     {noreply, State};
 
 handle_info(Info, State) ->
-    sd:cast(nodelog,nodelog,log,[warning,?MODULE_STRING,?LINE,["Unmatched signal",
-							       Info]]),
+    ?LOG_WARNING("Unmatched signal",[Info]),
     {noreply, State}.
-
 %% --------------------------------------------------------------------
 %% Function: terminate/2
 %% Description: Shutdown the server

@@ -30,14 +30,36 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
+		  %% lights and switches
 		  #{id=>tradfri_control_outlet,
 		    start=>{tradfri_control_outlet,start_link,[]}},
+
 		  #{id=>tradfri_on_off_switch,
 		    start=>{tradfri_on_off_switch,start_link,[]}},
-		  #{id=>lumi_sensor_weather,
-		    start=>{lumi_sensor_weather,start_link,[]}},
+
+		  #{id=>tradfri_bulb_E14_ws_candleopal_470lm,
+		    start=>{tradfri_bulb_E14_ws_candleopal_470lm,start_link,[]}},
+
 		  #{id=>tradfri_bulb_E27_cws_806lm,
 		    start=>{tradfri_bulb_E27_cws_806lm,start_link,[]}},
+
+		  #{id=>tradfri_bulb_e27_ww_806lm,
+		   start=>{tradfri_bulb_e27_ww_806lm,start_link,[]}},
+
+		  %% sensors
+		  #{id=>lumi_sensor_weather,
+		    start=>{lumi_sensor_weather,start_link,[]}},
+
+		  #{id=>tradfri_motion_sensor,
+		    start=>{tradfri_motion_sensor,start_link,[]}},
+
+		  #{id=>lumi_sensor_magnet_aq2,
+		    start=>{lumi_sensor_magnet_aq2,start_link,[]}},
+
+		  #{id=>lumi_sensor_motion_aq2,
+		    start=>{lumi_sensor_motion_aq2,start_link,[]}},
+
+		  %% application
 		  #{id=>hw_conbee,
 		    start=>{hw_conbee,start_link,[]}}		 	
 		 ],

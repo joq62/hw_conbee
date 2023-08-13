@@ -101,14 +101,6 @@ get(Name,Function,Args)->
 set(Name,Function,Args)->
     gen_server:call(?SERVER, {set,Name,Function,Args},infinity). 
 
-
-%%--------------------------------------------------------------------
-%% @doc
-%% @spec
-%% @end
-%%--------------------------------------------------------------------
-call(Name,Function,Args)->
-    gen_server:call(?SERVER, {call,Name,Function,Args},infinity). 
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
