@@ -208,10 +208,11 @@ init([]) ->
 %% Basic
 %%---------------------------------------------------------------------
 
-handle_call({num,{[],{Num,Map}}},_From, State) ->
+handle_call({num,{[],[{Num,Map}]}},_From, State) ->
     Reply=Num,
     {reply, Reply, State};
-handle_call({modelid,{[],{Num,Map}}},_From, State) ->
+
+handle_call({modelid,{[],[{Num,Map}]}},_From, State) ->
     Reply=maps:get(<<"modelid">>,Map),
     {reply, Reply, State};
 

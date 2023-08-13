@@ -30,6 +30,8 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
+		  #{id=>tradfri_bulb_E27_cws_806lm,
+		    start=>{tradfri_bulb_E27_cws_806lm,start_link,[]}}
 		  #{id=>hw_conbee,
 		    start=>{hw_conbee,start_link,[]}}		 	
 		 ],
