@@ -18,6 +18,7 @@
 %	 all_light_maps/3,
 %	 all_sensor_maps/3,
 %	 all_maps/3,
+	 get_nummap/3,
 	 get/6,
 	 set/6,
 	 get_maps/4,
@@ -29,6 +30,12 @@
 %% External functions
 %% ====================================================================
 
+
+get_nummap(Name,Type,NumMaps)->
+    NameBin=list_to_binary(Name),
+    [{Num,Map}||{Num,Map}<-NumMaps,
+		Type=:=maps:get(<<"type">>,Map),
+		NameBin=:=maps:get(<<"name">>,Map)].
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
@@ -47,7 +54,7 @@ get(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
 		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys],
 		   WantedNumDeviceMaps=[{Num,WantedMap}||{Num,WantedMap}<-NumDeviceMaps,
 							 NameBin=:=maps:get(<<"name">>,WantedMap)],		 
-		   rpc:call(node(),Module,Function,[{Args,WantedNumDeviceMaps}],2*5000)
+		   rpc:call(node(),Module,Function,[{Args,Name,WantedNumDeviceMaps}],2*5000)
 	   end,
     Result.
 
