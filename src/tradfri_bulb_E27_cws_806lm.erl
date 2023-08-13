@@ -127,39 +127,39 @@ all_info(RawMap)->
 %%--------------------------------------------------------------------
 
 %% Basic
-num({[],Maps})->
-    gen_server:call(?SERVER, {num,{[],Maps}},infinity). 
+num({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {num,{[],WantedNumDeviceMaps}},infinity). 
  
-etag(RawMap)->
-    gen_server:call(?SERVER, {etag,RawMap},infinity). 
-hascolor(RawMap)->
-    gen_server:call(?SERVER, {hascolor,RawMap},infinity).
-lastannounced(RawMap)->
-    gen_server:call(?SERVER, {lastannounced,RawMap},infinity). 
-lastseen(RawMap)->
-    gen_server:call(?SERVER, {lastseen,RawMap},infinity). 
-modelid(RawMap)->
-    gen_server:call(?SERVER, {modelid,RawMap},infinity). 
-name(RawMap)->
-    gen_server:call(?SERVER, {name,RawMap},infinity). 
-swversion(RawMap)->
-    gen_server:call(?SERVER, {swversion,RawMap},infinity). 
-type(RawMap)->
-    gen_server:call(?SERVER, {type,RawMap},infinity). 
-uniqueid(RawMap)->
-    gen_server:call(?SERVER, {uniqueid,RawMap},infinity). 
+etag({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {etag,{[],WantedNumDeviceMaps}},infinity). 
+hascolor({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {hascolor,{[],WantedNumDeviceMaps}},infinity).
+lastannounced({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastannounced,{[],WantedNumDeviceMaps}},infinity). 
+lastseen({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastseen,{[],WantedNumDeviceMaps}},infinity). 
+modelid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {modelid,{[],WantedNumDeviceMaps}},infinity). 
+name({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {name,{[],WantedNumDeviceMaps}},infinity). 
+swversion({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {swversion,{[],WantedNumDeviceMaps}},infinity). 
+type({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {type,{[],WantedNumDeviceMaps}},infinity). 
+uniqueid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {uniqueid,{[],WantedNumDeviceMaps}},infinity). 
 
 %% State
-is_alert(RawMap)->
-    gen_server:call(?SERVER, {is_alert,RawMap},infinity). 
-is_on(RawMap)->
-    gen_server:call(?SERVER, {is_on,RawMap},infinity). 
-turn_on(RawMap)->
-    gen_server:call(?SERVER, {turn_on,RawMap},infinity). 
-turn_off(RawMap)->
-    gen_server:call(?SERVER, {turn_off,RawMap},infinity). 
-is_reachable(RawMap)->
-    gen_server:call(?SERVER, {is_reachable,RawMap},infinity). 
+is_alert({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_alert,{[],WantedNumDeviceMaps}},infinity). 
+is_on({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_on,{[],WantedNumDeviceMaps}},infinity). 
+turn_on({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {turn_on,{[],WantedNumDeviceMaps}},infinity). 
+turn_off({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {turn_off,{[],WantedNumDeviceMaps}},infinity). 
+is_reachable({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_reachable,{[],WantedNumDeviceMaps}},infinity). 
 
 
 %%--------------------------------------------------------------------
@@ -208,9 +208,11 @@ init([]) ->
 %% Basic
 %%---------------------------------------------------------------------
 
-handle_call({num,{[],Maps}},_From, State) ->
-    
-    Reply=pong,
+handle_call({num,{[],{Num,Map}}},_From, State) ->
+    Reply=Num,
+    {reply, Reply, State};
+handle_call({modelid,{[],{Num,Map}}},_From, State) ->
+    Reply=maps:get(<<"modelid">>,Map),
     {reply, Reply, State};
 
 handle_call({ping},_From, State) ->

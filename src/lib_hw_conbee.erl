@@ -46,9 +46,7 @@ get(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
 		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys],
 		   WantedNumDeviceMaps=[{Num,WantedMap}||{Num,WantedMap}<-NumDeviceMaps,
 							 NameBin=:=maps:get(<<"name">>,WantedMap)],		 
-		   
-		   WantedNumDeviceMaps
-		   %rpc:call(node(),Module,Function,[{Args,Maps}],2*5000)
+		   rpc:call(node(),Module,Function,[{Args,WantedNumDeviceMaps}],2*5000)
 	   end,
     Result.
 
