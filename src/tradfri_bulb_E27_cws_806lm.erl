@@ -207,14 +207,68 @@ init([]) ->
 %%---------------------------------------------------------------------
 %% Basic
 %%---------------------------------------------------------------------
-
+%% get
 handle_call({num,{[],[{Num,Map}]}},_From, State) ->
-    Reply=Num,
+    Reply=binary_to_list(Num),
     {reply, Reply, State};
 
-handle_call({modelid,{[],[{Num,Map}]}},_From, State) ->
-    Reply=maps:get(<<"modelid">>,Map),
+handle_call({modelid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"modelid">>,Map)),
     {reply, Reply, State};
+
+handle_call({etag,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"etag">>,Map)),
+    {reply, Reply, State};
+
+handle_call({hascolor,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"hascolor">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastannounced,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastannounced">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastseen,{[],[{Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastseen">>,Map)),
+    {reply, Reply, State};
+
+handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"name">>,Map)),
+    {reply, Reply, State};
+
+handle_call({swversion,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"swversion">>,Map)),
+    {reply, Reply, State};
+
+handle_call({type,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"type">>,Map)),
+    {reply, Reply, State};
+
+handle_call({uniqueid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"uniqueid">>,Map)),
+    {reply, Reply, State};
+
+handle_call({is_alert,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
+    Reply=maps:get(<<"alert">>,DeviceMap),
+    {reply, Reply, State};
+
+handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
+    Reply=maps:get(<<"on">>,DeviceMap),
+    {reply, Reply, State};
+
+%%-- set
+
+handle_call({turn_on,{[],[{Num,Map}]}},_From, State) ->
+    Reply={binary_to_list(Num),<<"on">>,true},
+    {reply, Reply, State};
+
+handle_call({turn_off,{[],[{Num,Map}]}},_From, State) ->
+    Reply={binary_to_list(Num),<<"on">>,false},
+    {reply, Reply, State};
+
+
 
 handle_call({ping},_From, State) ->
     Reply=pong,

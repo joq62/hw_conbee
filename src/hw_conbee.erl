@@ -296,7 +296,6 @@ handle_call({set,Name,Function,Args},_From, State) ->
     ConbeePort=State#state.ip_port,
     Crypto=State#state.crypto,
     Reply=lib_hw_conbee:set(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto),
-
     {reply, Reply, State};
 
 handle_call({get,Name,Function,Args},_From, State) ->
