@@ -1,0 +1,89 @@
+%% Template
+#{<<"modelid">>=><<"">>,
+  <<"name">>=><<"">> ,
+  <<"state">>=>[<<"alert">>,<<"on">>,<<"reachable">>],
+  <<"type">>=><<"">>,
+  <<"module">>=>a
+}.
+
+%%------------------- IKEA  ---------------------------
+ 
+#{<<"modelid">>=><<"TRADFRIbulbE14WScandleopal470lm">>,
+  <<"name">>=><<"blue_lamp_inglasad">> ,
+  <<"state">>=>[<<"bri">>,<<"colormode">>,<<"ct">>,
+	        <<"alert">>,<<"on">>,<<"reachable">>],
+  <<"type">>=><<"Color temperature light">>,
+  <<"module">>=>a
+}.
+
+#{<<"modelid">>=><<"TRADFRI bulb E27 WW 806lm">>,
+  <<"name">>=><<"lamp_inglasad">> ,
+  <<"state">>=>[<<"bri">>,<<"alert">>,<<"on">>,<<"reachable">>],
+  <<"type">>=><<"Dimmable light">>,
+  <<"module">>=>tradfri_bulb_e27_ww_806lm
+}.
+
+#{<<"modelid">>=><<"TRADFRI control outlet">>,
+  <<"name">>=><<"switch_lamp_balcony">>,
+  <<"state">>=>[<<"alert">>,<<"on">>,<<"reachable">>],
+  <<"type">>=><<"On/Off plug-in unit">>,
+  <<"module">>=>tradfri_control_outlet
+}.
+
+#{<<"modelid">>=><<"TRADFRI on/off switch">>,
+  <<"name">>=><<"switch_all">> ,
+  <<"state">>=>[<<"buttonevent">>,<<"lastupdated">>],
+  <<"type">>=><<"ZHASwitch">>,
+  <<"module">>=>a
+}.
+
+#{<<"modelid">>=><<"TRADFRI motion sensor">>,
+  <<"name">>=><<"protoype_ikea_motion">> ,
+  <<"state">>=>[<<"dark">>,<<"lastupdated">>,<<"presence">],
+  <<"type">>=><<"ZHAPresence">>,
+  <<"module">>=>a
+}.
+
+%% --------------------- Aqara lumi -----------------------
+#{<<"modelid">>=><<"lumi.switch.n0agl1">>,
+  <<"name">>=><<"outdoor_heather_to_room">> ,
+  <<"state">>=>[<<"alert">>,<<"on">>,<<"reachable">>],
+  <<"type">>=><<"On/Off light">>,
+  <<"module">>=>glurk
+}.
+
+
+#{<<"modelid">>=><<"lumi.sensor_motion.aq2">>,
+  <<"name">>=><<"protype_motion_aqara">> ,
+  <<"state">>=>[<<"dark">>,<<"daylight">>,<<"lightlevel">>,<<"lux">>],
+  <<"type">>=><<"ZHALightLevel">>,
+  <<"module">>=>glurk
+}.
+
+#{<<"modelid">>=><<"lumi.sensor_magnet.aq2">>,
+  <<"name">>=><<"prototype_door_sensor">> ,
+  <<"state">>=>[<<"open">>,<<"lastupdated">>],
+  <<"type">>=><<"ZHAOpenClose">>,
+  <<"module">>=>glurk
+}.
+
+#{<<"modelid">>=><<"lumi.weather">>,
+  <<"name">>=><<"weather_inglasade">> ,
+  <<"state">>=>[<<"temperature">>,<<"lastupdated">>],
+  <<"type">>=><<"ZHATemperature">>,
+  <<"module">>=>a
+}.
+
+#{<<"modelid">>=><<"lumi.weather">>,
+  <<"name">>=><<"weather_inglasade">> ,
+  <<"state">>=>[<<"humidity">>,<<"lastupdated">>],
+  <<"type">>=><<"ZHAHumidity">>,
+  <<"module">>=>a
+}.
+
+#{<<"modelid">>=><<"lumi.weather">>,
+  <<"name">>=><<"weather_inglasade">> ,
+  <<"state">>=>[<<"pressure">>,<<"lastupdated">>],
+  <<"type">>=><<"ZHAPressure">>,
+  <<"module">>=>a
+}.

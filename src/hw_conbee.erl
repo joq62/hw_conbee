@@ -17,15 +17,19 @@
 
 %% --------------------------------------------------------------------
 -include("log.api").
+-include("device.spec").
 
 -define(ConbeeContainer,"deconz").
--define(DeviceTypes,["lights","sensors"]). 
 -define(SERVER,?MODULE).
 
 %% External exports
 -export([
 	 %% basic
+	 get/3,
+	 set/3,
+	 all_maps/0,
 	 all_info/1,
+	 call/3,
 
 
 	 %% lights
@@ -80,7 +84,8 @@
 
 %%-------------------------------------------------------------------
 
--record(state,{ip_addr,
+-record(state,{device_info,
+	       ip_addr,
 	       ip_port,
 	       crypto
 	      }).
@@ -114,8 +119,42 @@ stop()-> gen_server:call(?SERVER, {stop},infinity).
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
+all_maps()->
+    gen_server:call(?SERVER, {all_maps},infinity). 
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
 all_info(DeviceType)->
     gen_server:call(?SERVER, {all_info,DeviceType},infinity). 
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+get(Name,Function,Args)->
+    gen_server:call(?SERVER, {get,Name,Function,Args},infinity). 
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+set(Name,Function,Args)->
+    gen_server:call(?SERVER, {set,Name,Function,Args},infinity). 
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+call(Name,Function,Args)->
+    gen_server:call(?SERVER, {call,Name,Function,Args},infinity). 
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
@@ -232,7 +271,8 @@ init([]) ->
 				   ip_port,ConbeePort,
 				   crypto,ConbeeKey]),
    
-    {ok, #state{ip_addr=ConbeeAddr,
+    {ok, #state{device_info=undefined,
+	        ip_addr=ConbeeAddr,
 		ip_port=ConbeePort,
 		crypto=ConbeeKey}}.   
  
@@ -251,6 +291,31 @@ init([]) ->
 %%---------------------------------------------------------------------
 %% Basic
 %%---------------------------------------------------------------------
+handle_call({set,Name,Function,Args},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+    Reply=lib_hw_conbee:set(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto),
+
+    {reply, Reply, State};
+
+handle_call({get,Name,Function,Args},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+    Reply=lib_hw_conbee:get(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto),
+
+    {reply, Reply, State};
+
+
+handle_call({all_maps},_From, State) ->
+    ConbeeAddr=State#state.ip_addr,
+    ConbeePort=State#state.ip_port,
+    Crypto=State#state.crypto,
+    Reply=lib_hw_conbee:all_maps(ConbeeAddr,ConbeePort,Crypto),
+
+    {reply, Reply, State};
+
 handle_call({all_info,DeviceType},_From, State) ->
     ConbeeAddr=State#state.ip_addr,
     ConbeePort=State#state.ip_port,
@@ -265,6 +330,7 @@ handle_call({all_info,DeviceType},_From, State) ->
 	    end,
     ok=gun:close(ConnPid),
     {reply, Reply, State};
+
 
 
 %%---------------------------------------------------------------------

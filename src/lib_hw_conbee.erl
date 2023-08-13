@@ -9,148 +9,79 @@
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
--include("device.hrl").
+%-include("device.spec").
 %% --------------------------------------------------------------------
 
 %% External exports
 -export([
-	 what_devices/4,
-	 is_reachable/5
-	 
-	 
+
+%	 all_light_maps/3,
+%	 all_sensor_maps/3,
+%	 all_maps/3,
+	 get_maps/4,
+	 set_state/7
 	]). 
 
 
 %% ====================================================================
 %% External functions
 %% ====================================================================
-%%--------------------------------------------------------------------
-%% @doc
-%% @spec
-%% @end
-%%--------------------------------------------------------------------
-what_devices("lights",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("lights",ConbeeAddr,ConbeePort,Crypto);
-what_devices("sensors",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("sensors",ConbeeAddr,ConbeePort,Crypto);
-what_devices("switches",ConbeeAddr,ConbeePort,Crypto)->
-    get_device_ids("switches",ConbeeAddr,ConbeePort,Crypto).
-
-get_device_ids(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
-    AllInfo=all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
-    DeviceIds=[Name||{Name,NumId,ModelId,Status}<-AllInfo],
-    DeviceIds.
 
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
 %% @end
 %%--------------------------------------------------------------------
-is_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("lights",DeviceName,ConbeeAddr,ConbeePort,Crypto);
-is_reachable("sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("sensors",DeviceName,ConbeeAddr,ConbeePort,Crypto);
-is_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    check_reachable("switches",DeviceName,ConbeeAddr,ConbeePort,Crypto).
-
-
-check_reachable(DeviceType,DeviceName,ConbeeAddr,ConbeePort,Crypto)->
-    DeviceMapList=[#{device_name=>Name, device_num_id=>NumId,device_model=>ModelId,
-		     device_type=>DeviceType,device_status=>Status}||{Name,NumId,ModelId,Status}<-all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto),
-								     DeviceName=:=Name],
-    IsReachable=case DeviceMapList of
-		    []->
-			{error,["Eexists ",DeviceName,?MODULE,?LINE]};
-		    [DeviceMap]->
-			io:format("DBG DeviceMap ~p~n",[{DeviceMap,?MODULE,?LINE}]),
-			 ModelId=maps:get(device_model,DeviceMap),
-			[Module]=[maps:get(module,Map)||Map<-?DeviceInfo,
-						  ModelId==maps:get(model_id,Map)],
-			case rpc:call(node(),Module,is_reachable,[DeviceMap],5000) of
-			    {badrpc,Reason}->
-				{error,["unexpected error ",badrpc,Reason,DeviceType,DeviceName,?MODULE,?LINE]};
-			    true->
-				true;
-			    false ->
-				false
-			end
-		end,
-    IsReachable.
-			
-%% --------------------------------------------------------------------
-%% Function:start/0 
-%% Description: Initiate the eunit tests, set upp needed processes etc
-%% Returns: non
-%% --------------------------------------------------------------------
-get_reply(ConnPid,StreamRef)->
- %   io:format("~p~n", [{?MODULE,?LINE}]),
- %   StreamRef = gun:get(ConnPid, "/"),
-    case gun:await(ConnPid, StreamRef) of
-	{response, fin, Status, Headers} ->
-%	    io:format(" no_data ~p~n", [{?MODULE,?LINE}]),
-	    Body=[no_data];
-	{response, nofin, Status, Headers} ->
-%	    io:format(" ~p~n", [{?MODULE,?LINE}]),
-	    {ok, Body} = gun:await_body(ConnPid, StreamRef),
-	    Body
-    end,
-    {Status, Headers,Body}.
-%% --------------------------------------------------------------------
-%% Function:start/0 
-%% Description: Initiate the eunit tests, set upp needed processes etc
-%% Returns: non
-%% --------------------------------------------------------------------
-all_info(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
-    extract_info(DeviceType,ConbeeAddr,ConbeePort,Crypto).
-  
-extract_info(DeviceType,ConbeeAddr,ConbeePort,Crypto)->
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    CmdLights="/api/"++Crypto++"/"++DeviceType,
-    Ref=gun:get(ConnPid,CmdLights),
-    Result= get_info(gun:await_body(ConnPid, Ref)),
-    ok=gun:close(ConnPid),
+get(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
+     NameBin=list_to_binary(Name),
+    Result=case sd:call(etcd,etcd_zigbee_device,member,[NameBin],5000) of
+	       false->
+		   {error,["Not exists ",Name,?MODULE,?LINE]};
+	       true ->
+		   {ok,DeviceType}=sd:call(etcd,etcd_zigbee_device,get_device_type,[NameBin],5000),
+		   {ok,Module}=sd:call(etcd,etcd_zigbee_device,get_module,[NameBin],5000),
+		   Maps=get_maps(DeviceType,ConbeeAddr,ConbeePort,Crypto),
+		   Keys=maps:keys(Maps),
+		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys]
+		   %rpc:call(node(),Module,Function,[{Args,Maps}],2*5000)
+	   end,
     Result.
 
-get_info({ok,Body})->
-    get_info(Body);
-get_info(Body)->
-    Map=jsx:decode(Body,[]),
-    format_info(Map).
 
-format_info(Map)->
-    L=maps:to_list(Map),
- %   io:format("L=~p~n",[{?MODULE,?LINE,L}]),
-    format_info(L,[]).
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+%all_maps(Ip,Port,Crypto)->
+%    MapsLists=[get_maps(DeviceType,Ip,Port,Crypto)||DeviceType<-?DeviceTypes],
+%    Nums=maps:keys(MapsLists),
+%    NumDeviceMaps=[{Num,maps:get(Num,MapsLists)}||Num<-Nums],
+%    NumDeviceMaps.
 
-format_info([],Formatted)->
-    Formatted;
-format_info([{IdBin,Map}|T],Acc)->
-    NumId=binary_to_list(IdBin),
-    Name=binary_to_list(maps:get(<<"name">> ,Map)),
-    ModelId=binary_to_list(maps:get(<<"modelid">>,Map)),
-    State=maps:get(<<"state">>,Map),
-    NewAcc=[{Name,NumId,ModelId,State}|Acc],
-    format_info(T,NewAcc).
 
-%% --------------------------------------------------------------------
-%% Function:start/0 
-%% Description: Initiate the eunit tests, set upp needed processes etc
-%% Returns: non
-%% --------------------------------------------------------------------
-all_raw()->
-    {ok,ConbeeAddr}=application:get_env(ip),
-    {ok,ConbeePort}=application:get_env(port),
-    {ok,CmdSensors}=application:get_env(cmd_sensors),
+get_maps(DeviceType,Ip,Port,Crypto)->
+    {ok, ConnPid} = gun:open(Ip,Port),
+    Cmd="/api/"++Crypto++"/"++DeviceType,
+    Ref=gun:get(ConnPid,Cmd),
+    MapsList = case gun:await_body(ConnPid, Ref) of
+		{ok,Body}->
+		    jsx:decode(Body,[])
+	    end,
+    ok=gun:close(ConnPid),
+    MapsList.
 
-    {ok, ConnPid} = gun:open(ConbeeAddr,ConbeePort),
-    Ref=gun:get(ConnPid,CmdSensors),
-    Result= all_raw(gun:await_body(ConnPid, Ref)),
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+set_state(Id,Key,Value,DeviceType,Ip,Port,Crypto)->
+    Cmd="/api/"++Crypto++"/"++DeviceType++"/"++Id++"/state",
+    Body=jsx:encode(#{Key => Value}),
+    {ok, ConnPid} = gun:open(Ip,Port),
+    StreamRef = gun:put(ConnPid, Cmd, 
+			[{<<"content-type">>, "application/json"}],Body),
+    Result=lib_conbee:get_reply(ConnPid,StreamRef),
     ok=gun:close(ConnPid),
     Result.
-
-all_raw({ok,Body})->
-    all_raw(Body);
-all_raw(Body)->
-    Map=jsx:decode(Body,[]),
-    maps:to_list(Map).
-
