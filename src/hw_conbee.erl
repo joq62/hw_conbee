@@ -249,6 +249,14 @@ handle_cast(Msg, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 
+
+handle_info({gun_up,_,http}, State) -> 
+    {noreply, State};
+
+
+handle_info({gun_response,_,_,_,_,_}, State) -> 
+    {noreply, State};
+
 handle_info(timeout, State) -> 
     io:format("timeout ~p~n",[{?MODULE,?LINE}]), 
     
