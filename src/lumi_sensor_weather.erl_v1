@@ -8,7 +8,7 @@
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
 -module(lumi_sensor_weather).
-
+  
 -behaviour(gen_server). 
 
 %% --------------------------------------------------------------------
@@ -18,7 +18,7 @@
 %% --------------------------------------------------------------------
 -include("log.api").
 
--define(Types,<<"ZHAPressure">>,<<"ZHAHumidity">>,<<"ZHATemperature">>).
+ 
 -define(SERVER,?MODULE).
 
 % <<"4">> =>
@@ -160,42 +160,41 @@ all_info(RawMap)->
 %% @end
 %%--------------------------------------------------------------------
 
-num({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {num,{[],Name,WantedNumDeviceMaps}},infinity). 
+num({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {num,{[],WantedNumDeviceMaps}},infinity). 
  
-etag({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"etag">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-lastannounced({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"lastannounced">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-lastseen({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"lastseen">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-modelid({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"modelid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-name({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"name">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-swversion({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"swversion">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-type({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {basic,<<"type">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-uniqueid({[],Name,WantedNumDeviceMaps})->basic,
-    gen_server:call(?SERVER, {basic,<<"uniqueid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+etag({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {etag,{[],WantedNumDeviceMaps}},infinity). 
+lastannounced({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastannounced,{[],WantedNumDeviceMaps}},infinity). 
+lastseen({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastseen,{[],WantedNumDeviceMaps}},infinity). 
+modelid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {modelid,{[],WantedNumDeviceMaps}},infinity). 
+name({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {name,{[],WantedNumDeviceMaps}},infinity). 
+swversion({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {swversion,{[],WantedNumDeviceMaps}},infinity). 
+type({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {type,{[],WantedNumDeviceMaps}},infinity). 
+uniqueid({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {uniqueid,{[],WantedNumDeviceMaps}},infinity). 
 
 %% State
-lastupdate({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {state_get,<<"lastupdate">>,{[],Name,WantedNumDeviceMaps}},infinity).
-pressure({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {state_get,<<"pressure">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-humidity({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {state_get,<<"humidity">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-temperature({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {state_get,<<"temperature">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-
+lastupdate({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {lastupdate,{[],WantedNumDeviceMaps}},infinity).
+humidity({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {humidity,{[],WantedNumDeviceMaps}},infinity). 
+pressure({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {pressure,{[],WantedNumDeviceMaps}},infinity). 
+temperature({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {temperature,{[],WantedNumDeviceMaps}},infinity). 
 
 %% config 
-is_on({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
-is_reachable({[],Name,WantedNumDeviceMaps})->
-    gen_server:call(?SERVER, {config_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+is_on({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_on,{[],WantedNumDeviceMaps}},infinity). 
+is_reachable({[],WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {is_reachable,{[],WantedNumDeviceMaps}},infinity). 
 
 
 
@@ -240,46 +239,73 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
-handle_call({num,{[],Name,NumMaps}},_From, State) ->
-    [{NumPressure,_MapPressure}]=lib_hw_conbee:get_nummap(Name,<<"ZHAPressure">>,NumMaps),
-    [{NumHumidity,_MapHumidity}]=lib_hw_conbee:get_nummap(Name,<<"ZHAHumidity">>,NumMaps),
-    [{NumTemperature,_MapTemperature}]=lib_hw_conbee:get_nummap(Name,<<"ZHATemperature">>,NumMaps),
-    Reply=[{pressure,binary_to_list(NumPressure)},
-	   {humidity,binary_to_list(NumHumidity)},
-	   {pressure,binary_to_list(NumTemperature)}],
+handle_call({num,{[],[{Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(Num),
     {reply, Reply, State};
 
+handle_call({modelid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"modelid">>,Map)),
+    {reply, Reply, State};
 
-handle_call({basic,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_NumPressure,MapPressure}]=lib_hw_conbee:get_nummap(Name,<<"ZHAPressure">>,NumMaps),
-    Reply=binary_to_list(maps:get(Key,MapPressure)),
+handle_call({etag,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"etag">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastannounced,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastannounced">>,Map)),
+    {reply, Reply, State};
+
+handle_call({lastseen,{[],[{Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"lastseen">>,Map)),
+    {reply, Reply, State};
+
+handle_call({name,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"name">>,Map)),
+    {reply, Reply, State};
+
+handle_call({swversion,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"swversion">>,Map)),
+    {reply, Reply, State};
+
+handle_call({type,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"type">>,Map)),
+    {reply, Reply, State};
+
+handle_call({uniqueid,{[],[{_Num,Map}]}},_From, State) ->
+    Reply=binary_to_list(maps:get(<<"uniqueid">>,Map)),
     {reply, Reply, State};
 
 %% state
+handle_call({lastupdate,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
+    Reply=maps:get(<<"lastupdate">>,DeviceMap),
+    {reply, Reply, State};
 
-handle_call({state_get,<<"humidity">>,{[],Name,NumMaps}},_From, State) ->
-    [{_NumHumidity,MapHumidity}]=lib_hw_conbee:get_nummap(Name,<<"ZHAHumidity">>,NumMaps),
-    DeviceMap=maps:get(<<"state">>,MapHumidity),
+handle_call({humidity,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
     Reply=maps:get(<<"humidity">>,DeviceMap),
     {reply, Reply, State};
 
-handle_call({state_get,<<"temperature">>,{[],Name,NumMaps}},_From, State) ->
-    [{_NumTemperature,MapTemperature}]=lib_hw_conbee:get_nummap(Name,<<"ZHATemperature">>,NumMaps),
-    DeviceMap=maps:get(<<"state">>,MapTemperature),
-    Reply=maps:get(<<"temperature">>,DeviceMap),
-    {reply, Reply, State};
 
-handle_call({state_get,<<"pressure">>,{[],Name,NumMaps}},_From, State) ->
-    [{_NumPressure,MapPressure}]=lib_hw_conbee:get_nummap(Name,<<"ZHAPressure">>,NumMaps),
-    DeviceMap=maps:get(<<"state">>,MapPressure),
+handle_call({pressure,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
     Reply=maps:get(<<"pressure">>,DeviceMap),
     {reply, Reply, State};
 
+handle_call({temperature,{[],[{_Num,Map}]}},_From, State) ->
+    DeviceMap=maps:get(<<"state">>,Map),
+    Reply=maps:get(<<"temperature">>,DeviceMap),
+    {reply, Reply, State};
+
 %% config
-handle_call({config_get,Key,{[],Name,NumMaps}},_From, State) ->
-    [{_NumPressure,MapPressure}]=lib_hw_conbee:get_nummap(Name,<<"ZHAPressure">>,NumMaps),
-    ConfigMap=maps:get(<<"config">>,MapPressure),
-    Reply=maps:get(Key,ConfigMap),
+handle_call({is_on,{[],[{_Num,Map}]}},_From, State) ->
+    ConfigMap=maps:get(<<"config">>,Map),
+    Reply=maps:get(<<"on">>,ConfigMap),
+    {reply, Reply, State};
+
+handle_call({is_reachable,{[],[{_Num,Map}]}},_From, State) ->
+    ConfigMap=maps:get(<<"config">>,Map),
+    Reply=maps:get(<<"reachable">>,ConfigMap),
     {reply, Reply, State};
 
 handle_call({ping},_From, State) ->
@@ -347,6 +373,3 @@ code_change(_OldVsn, State, _Extra) ->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-
-		   
-    
