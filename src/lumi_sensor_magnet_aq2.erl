@@ -123,37 +123,39 @@ all_info(RawMap)->
 %% @end
 %%--------------------------------------------------------------------
 
-num({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {num,{[],Name,NumDeviceMaps}},infinity). 
+num({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {num,{[],Name,WantedNumDeviceMaps}},infinity). 
  
-etag({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {etag,{[],Name,NumDeviceMaps}},infinity). 
-lastannounced({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {lastannounced,{[],Name,NumDeviceMaps}},infinity). 
-lastseen({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {lastseen,{[],Name,NumDeviceMaps}},infinity). 
-modelid({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {modelid,{[],Name,NumDeviceMaps}},infinity). 
-name({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {name,{[],Name,NumDeviceMaps}},infinity). 
-swversion({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {swversion,{[],Name,NumDeviceMaps}},infinity). 
-type({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {type,{[],Name,NumDeviceMaps}},infinity). 
-uniqueid({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {uniqueid,{[],Name,NumDeviceMaps}},infinity). 
+etag({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"etag">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+lastannounced({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"lastannounced">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+lastseen({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"lastseen">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+modelid({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"modelid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+name({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"name">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+swversion({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"swversion">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+type({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {basic,<<"type">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+uniqueid({[],Name,WantedNumDeviceMaps})->basic,
+    gen_server:call(?SERVER, {basic,<<"uniqueid">>,{[],Name,WantedNumDeviceMaps}},infinity). 
 
 %% State
-lastupdate({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {lastupdate,{[],Name,NumDeviceMaps}},infinity).
-is_open({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {is_open,{[],Name,NumDeviceMaps}},infinity). 
+lastupdate({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_get,<<"lastupdate">>,{[],Name,WantedNumDeviceMaps}},infinity).
+
+is_open({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {state_get,<<"open">>,{[],Name,WantedNumDeviceMaps}},infinity).
 
 %% config 
-is_on({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {is_on,{[],Name,NumDeviceMaps}},infinity). 
-is_reachable({[],Name,NumDeviceMaps})->
-    gen_server:call(?SERVER, {is_reachable,{[],Name,NumDeviceMaps}},infinity). 
+is_on({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {config_get,<<"on">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+is_reachable({[],Name,WantedNumDeviceMaps})->
+    gen_server:call(?SERVER, {config_get,<<"reachable">>,{[],Name,WantedNumDeviceMaps}},infinity). 
+
 
 
 
