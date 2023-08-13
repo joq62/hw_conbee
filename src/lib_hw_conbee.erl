@@ -17,7 +17,7 @@
 
 %	 all_light_maps/3,
 %	 all_sensor_maps/3,
-%	 all_maps/3,
+	 what_devices/4,
 	 get_nummap/3,
 	 get/6,
 	 set/6,
@@ -29,6 +29,26 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+what_devices("lights",Ip,Port,Crypto)->
+    Maps=get_maps(<<"lights">>,Ip,Port,Crypto),
+    Maps;
+what_devices("sensors",Ip,Port,Crypto)->
+    Maps=get_maps(<<"sensors">>,Ip,Port,Crypto),
+    Maps.
+
+
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
 get_nummap(Name,Type,NumMaps)->
     NameBin=list_to_binary(Name),
     [{Num,Map}||{Num,Map}<-NumMaps,
