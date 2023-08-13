@@ -18,6 +18,7 @@
 %	 all_light_maps/3,
 %	 all_sensor_maps/3,
 %	 all_maps/3,
+	 get/6,
 	 get_maps/4,
 	 set_state/7
 	]). 
