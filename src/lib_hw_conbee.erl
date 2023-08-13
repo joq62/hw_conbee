@@ -62,14 +62,15 @@ set(Name,Function,Args,ConbeeAddr,ConbeePort,Crypto)->
 	       false->
 		   {error,["Not exists ",Name,?MODULE,?LINE]};
 	       true ->
-		   {ok,DeviceType}=sd:call(etcd,etcd_zigbee_device,get_device_type,[NameBin],5000),
+		   {ok,DeviceTypeBin}=sd:call(etcd,etcd_zigbee_device,get_device_type,[NameBin],5000),
 		   {ok,Module}=sd:call(etcd,etcd_zigbee_device,get_module,[NameBin],5000),
-		   Maps=get_maps(DeviceType,ConbeeAddr,ConbeePort,Crypto),
+		   Maps=get_maps(DeviceTypeBin,ConbeeAddr,ConbeePort,Crypto),
 		   Keys=maps:keys(Maps),
 		   NumDeviceMaps=[{Num,maps:get(Num,Maps)}||Num<-Keys],
 		   WantedNumDeviceMaps=[{Num,WantedMap}||{Num,WantedMap}<-NumDeviceMaps,
 							 NameBin=:=maps:get(<<"name">>,WantedMap)],		 
 		   {Num,Key,Value}=rpc:call(node(),Module,Function,[{Args,WantedNumDeviceMaps}],2*5000),
+		   DeviceType=binary_to_list(DeviceTypeBin),
 		   set_state(Num,Key,Value,DeviceType,ConbeeAddr,ConbeePort,Crypto)		   
 	   end,
     Result.
